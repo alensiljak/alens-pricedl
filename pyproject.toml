@@ -1,10 +1,12 @@
 [project]
 name = "pricedb-python"
 version = "0.1.0"
-description = "Add your description here"
+description = "Commodity price retrieval, storage, and export in format compatible with Plain-Text Accounting applications."
 readme = "README.md"
 requires-python = ">=3.13"
-dependencies = []
+dependencies = [
+    "click>=8.1.8",
+]
 
 [project.scripts]
 pricedb = "main:main"
