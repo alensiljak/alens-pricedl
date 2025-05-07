@@ -1,11 +1,17 @@
+'''
+Configuration for the PriceDb application.
+'''
 import os
-#import yaml
+
+# import yaml
 import tomllib
 from pathlib import Path
 from typing import Dict, Any, Optional
 
 
 class PriceDbConfig:
+    '''Configuration for the PriceDb application.'''
+
     def __init__(self):
         self.config_path = self._get_config_path()
         self.config_data = self._load_config()
@@ -28,15 +34,15 @@ class PriceDbConfig:
 
         if not config_dir:
             raise RuntimeError("Could not determine configuration directory")
-        
+
         config_dir.mkdir(parents=True, exist_ok=True)
-        return config_dir / "pricedb.yaml"
+        return config_dir / "pricedb.toml"
 
     def _load_config(self) -> Dict[str, Any]:
         """Load configuration from file."""
         if not self.config_path.exists():
             return {}
-        
+
         with open(self.config_path, "rb") as f:
             return tomllib.load(f) or {}
 
@@ -47,16 +53,18 @@ class PriceDbConfig:
 
     @property
     def prices_path(self) -> Optional[str]:
+        '''Path to the prices file.'''
         return self.config_data.get("prices_path")
 
-    @prices_path.setter
-    def prices_path(self, value: str):
-        self.config_data["prices_path"] = value
-        self.save_config()
+    # @prices_path.setter
+    # def prices_path(self, value: str):
+    #     self.config_data["prices_path"] = value
+    #     self.save_config()
 
     def get_value(self, key: str) -> Any:
+        '''Get a value from the configuration.'''
         return self.config_data.get(key)
 
-    def set_value(self, key: str, value: Any):
-        self.config_data[key] = value
-        self.save_config()
+    # def set_value(self, key: str, value: Any):
+    #     self.config_data[key] = value
+    #     self.save_config()
