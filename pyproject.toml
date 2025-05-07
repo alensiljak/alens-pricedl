@@ -10,3 +10,13 @@ dependencies = [
 
 [project.scripts]
 pricedb = "main:main"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3.5",
+]
+
+[tool.pytest.ini_options]
+pythonpath = [
+  "."
+]

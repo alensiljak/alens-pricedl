@@ -48,10 +48,12 @@ class Quote:
                 raise ValueError("currency must be uppercase!")
 
         downloader = self.get_downloader()
-        currency = self.currency
+        currency: str = self.currency or 'EUR'
 
         logging.debug(
-            f"Calling download with symbol {security_symbol} and currency {currency}"
+            "Calling download with symbol %s and currency %s",
+            security_symbol,
+            currency
         )
 
         try:
@@ -64,12 +66,12 @@ class Quote:
 
     def get_downloader(self) -> Downloader:
         """Get the appropriate downloader based on the source."""
-        from .quote.fixerio import Fixerio
-        from .quote.vanguard_au_2023_detail import VanguardAu3Downloader
-        from .quote.yahoo_finance_downloader import YahooFinanceDownloader
+        from .quotes.fixerio import Fixerio
+        from .quotes.vanguard_au_2023_detail import VanguardAu3Downloader
+        from .quotes.yahoo_finance_downloader import YahooFinanceDownloader
 
         source = self.source.lower() if self.source else None
-        
+
         if source == "yahoo_finance":
             logging.debug("using yahoo finance")
             return YahooFinanceDownloader()

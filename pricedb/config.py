@@ -1,5 +1,6 @@
 import os
-import yaml
+#import yaml
+import tomllib
 from pathlib import Path
 from typing import Dict, Any, Optional
 
@@ -12,7 +13,7 @@ class PriceDbConfig:
     def _get_config_path(self) -> Path:
         """Get the path to the configuration file."""
         config_dir = None
-        
+
         # Check for XDG_CONFIG_HOME environment variable
         xdg_config = os.environ.get("XDG_CONFIG_HOME")
         if xdg_config:
@@ -24,7 +25,7 @@ class PriceDbConfig:
                 config_dir = home / ".config" / "pricedb"
             elif os.name == "nt":  # Windows
                 config_dir = home / "AppData" / "Roaming" / "pricedb" / "config"
-        
+
         if not config_dir:
             raise RuntimeError("Could not determine configuration directory")
         
@@ -36,13 +37,13 @@ class PriceDbConfig:
         if not self.config_path.exists():
             return {}
         
-        with open(self.config_path, "r") as f:
-            return yaml.safe_load(f) or {}
+        with open(self.config_path, "rb") as f:
+            return tomllib.load(f) or {}
 
-    def save_config(self):
-        """Save configuration to file."""
-        with open(self.config_path, "w") as f:
-            yaml.dump(self.config_data, f)
+    # def save_config(self):
+    #     """Save configuration to file."""
+    #     with open(self.config_path, "w") as f:
+    #         yaml.dump(self.config_data, f)
 
     @property
     def prices_path(self) -> Optional[str]:
