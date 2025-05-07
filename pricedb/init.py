@@ -4,7 +4,7 @@ import asyncio
 import logging
 from datetime import datetime
 
-from ..model import Price, SecuritySymbol
+from .model import Price, SecuritySymbol
 
 
 class QuoteProvider(ABC):
@@ -15,9 +15,9 @@ class QuoteProvider(ABC):
 
 async def get_quote(symbol: str, currency: str, provider: str = "") -> Optional[Price]:
     """Get a price quote for the given symbol."""
-    from .fixerio import Fixerio
-    from .vanguard_au_2023_detail import VanguardAu3Downloader
-    from .yahoo_finance_downloader import YahooFinanceDownloader
+    from pricedb.quotes.fixerio import Fixerio
+    from pricedb.quotes.vanguard_au_2023_detail import VanguardAu3Downloader
+    from pricedb.quotes.yahoo_finance_downloader import YahooFinanceDownloader
     
     logging.debug(f"Getting quote for {symbol} in {currency} using {provider}")
     
