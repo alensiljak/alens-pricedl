@@ -1,6 +1,6 @@
 import asyncio
 import click
-from loguru import logging
+from loguru import logger
 import os
 from datetime import datetime
 from typing import List, Optional
@@ -15,11 +15,11 @@ from .price_flat_file import PriceFlatFile, PriceRecord
 @click.option("--debug/--no-debug", default=False, help="Enable debug logging")
 def cli(debug):
     """PriceDB - Retrieve, store, and export commodity prices in Ledger format."""
-    level = logging.DEBUG if debug else logging.INFO
-    logging.basicConfig(level=level, format="%(levelname)s: %(message)s")
+    # level = logging.DEBUG if debug else logging.INFO
+    # logging.basicConfig(level=level, format="%(levelname)s: %(message)s")
 
     cfg = PriceDbConfig()
-    logging.debug(f"Config file: {cfg.config_path}")
+    logger.debug(f"Config file: {cfg.config_path}")
 
 
 @cli.group()

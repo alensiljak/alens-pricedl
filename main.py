@@ -7,7 +7,10 @@ Main entry point for the script executable.
 
 import importlib.metadata
 
+import click
+
 import pricedb
+import pricedb.cli
 from pricedb.config import PriceDbConfig
 
 
@@ -33,18 +36,23 @@ def show_config():
     pass
 
 
-def main():
+@click.command()
+@click.option("--debug/--no-debug", default=False, help="Enable debug logging")
+def main(debug):
     '''
     Entry point for the `pricedb` utility.
     '''
     version = get_version()
     print(f'PriceDb v{version}')
+    print(debug)
 
     # load configuration
-    cfg = PriceDbConfig()
+    # cfg = PriceDbConfig()
     # todo: initialize application
     # todo: handle command
+    # pricedb.cli.cli(debug)
 
 
 if __name__ == '__main__':
-    main()
+    # main()
+    pricedb.cli.cli()
