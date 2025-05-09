@@ -1,6 +1,6 @@
 import asyncio
 import click
-import logging
+from loguru import logging
 import os
 from datetime import datetime
 from typing import List, Optional
@@ -8,7 +8,7 @@ from typing import List, Optional
 from .config import PriceDbConfig
 from .model import SecuritySymbol
 from .price_flat_file import PriceFlatFile, PriceRecord
-from .quotes import get_quote
+# from .quotes import get_quote
 
 
 @click.group()
@@ -17,18 +17,18 @@ def cli(debug):
     """PriceDB - Retrieve, store, and export commodity prices in Ledger format."""
     level = logging.DEBUG if debug else logging.INFO
     logging.basicConfig(level=level, format="%(levelname)s: %(message)s")
-    
-    config = PriceDbConfig()
-    logging.debug(f"Config file: {config.config_path}")
+
+    cfg = PriceDbConfig()
+    logging.debug(f"Config file: {cfg.config_path}")
 
 
 @cli.group()
-def config():
+def config_cmd():
     """Configuration commands."""
     pass
 
 
-@config.command("show")
+@config_cmd.command("show")
 def config_show():
     """Show current configuration."""
     config = PriceDbConfig()
@@ -40,14 +40,14 @@ def config_show():
         click.echo(f"{key}: {value}")
 
 
-@config.command("set")
-@click.argument("key")
-@click.argument("value")
-def config_set(key, value):
-    """Set a configuration value."""
-    config = PriceDbConfig()
-    config.set_value(key, value)
-    click.echo(f"Set {key} to {value}")
+# @config_cmd.command("set")
+# @click.argument("key")
+# @click.argument("value")
+# def config_set(key, value):
+#     """Set a configuration value."""
+#     config = PriceDbConfig()
+#     config.set_value(key, value)
+#     click.echo(f"Set {key} to {value}")
 
 
 @cli.command("dl")
@@ -65,4 +65,4 @@ async def download(symbol, currency, provider, file):
         file = config.get_value("symbols_file")
         
         if not symbol and not file:
-            click.echo
+            click.echo()
