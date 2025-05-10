@@ -11,7 +11,6 @@ import click
 
 import pricedb
 import pricedb.cli
-from pricedb.config import PriceDbConfig
 
 
 def download_quotes():
@@ -54,5 +53,5 @@ def main(debug):
 
 
 if __name__ == '__main__':
-    # main()
-    pricedb.cli.cli()
+    main()
+    # pricedb.cli.cli()

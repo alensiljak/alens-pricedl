@@ -22,13 +22,13 @@ def cli(debug):
     logger.debug(f"Config file: {cfg.config_path}")
 
 
-@cli.group()
+# @cli.group()
 def config_cmd():
     """Configuration commands."""
     pass
 
 
-@config_cmd.command("show")
+# @config_cmd.command("show")
 def config_show():
     """Show current configuration."""
     config = PriceDbConfig()
@@ -58,11 +58,11 @@ def config_show():
 async def download(symbol, currency, provider, file):
     """Download prices for symbols."""
     config = PriceDbConfig()
-    
+
     # If no file or symbol provided, check config
     if not symbol and not file:
         symbol = config.get_value("symbol")
         file = config.get_value("symbols_file")
-        
+
         if not symbol and not file:
             click.echo()

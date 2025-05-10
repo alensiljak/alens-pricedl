@@ -1,7 +1,7 @@
 '''
 Configuration for the PriceDb application.
 '''
-# import os
+import os
 
 # import yaml
 import tomllib
@@ -21,24 +21,24 @@ class PriceDbConfig:
         config_dir = None
 
         # Check for XDG_CONFIG_HOME environment variable
-        # xdg_config = os.environ.get("XDG_CONFIG_HOME")
-        # if xdg_config:
-        #     config_dir = Path(xdg_config) / "pricedb"
-        # else:
-        #     # Default to platform-specific config directory
-        #     home = Path.home()
-        #     if os.name == "posix":  # Linux/Mac
-        #         config_dir = home / ".config" / "pricedb"
-        #     elif os.name == "nt":  # Windows
-        #         config_dir = home / "AppData" / "Roaming" / "pricedb" / "config"
+        xdg_config = os.environ.get("XDG_CONFIG_HOME")
+        if xdg_config:
+            config_dir = Path(xdg_config) / "pricedb"
+        else:
+            # Default to platform-specific config directory
+            home = Path.home()
+            if os.name == "posix":  # Linux/Mac
+                config_dir = home / ".config" / "pricedb"
+            elif os.name == "nt":  # Windows
+                config_dir = home / "AppData" / "Roaming" / "pricedb" / "config"
 
-        # if not config_dir:
-        #     raise RuntimeError("Could not determine configuration directory")
+        if not config_dir:
+            raise RuntimeError("Could not determine configuration directory")
 
-        # config_dir.mkdir(parents=True, exist_ok=True)
+        config_dir.mkdir(parents=True, exist_ok=True)
 
         # Use the current directory.
-        config_dir = Path.cwd()
+        # config_dir = Path.cwd()
         return config_dir / "pricedb.toml"
 
     def _load_config(self) -> Dict[str, Any]:

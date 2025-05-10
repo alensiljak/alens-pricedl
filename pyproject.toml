@@ -1,5 +1,5 @@
 [project]
-name = "pricedb-python"
+name = "as-price-download"
 version = "0.1.0"
 description = "Commodity price retrieval, storage, and export in format compatible with Plain-Text Accounting applications."
 readme = "README.md"
@@ -10,7 +10,8 @@ dependencies = [
 ]
 
 [project.scripts]
-pricedb = "main:main"
+# pricedl = "main:main"
+pricedl = "pricedb.cli.cli"
 
 [dependency-groups]
 dev = [
