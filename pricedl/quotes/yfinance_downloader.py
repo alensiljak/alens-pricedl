@@ -29,7 +29,7 @@ def show_quick_info(ticker):
 
     print(data.fast_info)
     #print(data.info)
-    #print(data.fast_info.get('regularMarketPrice'))
+    # print(data.fast_info.get('regularMarketPrice'))
     # print(data.fast_info.get('previousClose'))
     # print(data.fast_info.get('regularMarketPreviousClose'))
     print(data.fast_info.get('lastPrice'))
@@ -51,6 +51,9 @@ def show_info(ticker):
     ''' show info for a ticker '''
     data = yf.Ticker(ticker)
 
+    print(data.info)
+    print(data.info.get('regularMarketPrice'))
+
     return data.info
 
 def get_requested_symbol():
@@ -61,14 +64,14 @@ def get_requested_symbol():
     return args.symbol
 
 def main():
-    ''' quick test'''
-    #show_quick_info('OPI')
+    ''' dev test'''
     symbol = get_requested_symbol()
-    logger.info(f'Getting price for {symbol}')
     symbol = symbol.upper()
+    logger.info(f'Getting price for {symbol}')
 
-    info = show_info(symbol)
-    print(info)
+    show_info(symbol)
+    #show_vg_fund()
+    #show_quick_info(symbol)
 
 if __name__ == '__main__':
     # print(get_latest_price('OPI'))
