@@ -15,9 +15,9 @@ class QuoteProvider(ABC):
 
 async def get_quote(symbol: str, currency: str, provider: str = "") -> Optional[Price]:
     """Get a price quote for the given symbol."""
-    from pricedb.quotes.fixerio import Fixerio
-    from pricedb.quotes.vanguard_au_2023_detail import VanguardAu3Downloader
-    from pricedb.quotes.yahoo_finance_downloader import YahooFinanceDownloader
+    from pricedl.quotes.fixerio import Fixerio
+    from pricedl.quotes.vanguard_au_2023_detail import VanguardAu3Downloader
+    from pricedl.quotes.yahoo_finance_downloader import YahooFinanceDownloader
     
     logging.debug(f"Getting quote for {symbol} in {currency} using {provider}")
     
