@@ -9,8 +9,8 @@ import importlib.metadata
 
 import click
 
-import pricedb
-import pricedb.cli
+import pricedl
+import pricedl.cli
 
 
 def download_quotes():

@@ -11,7 +11,7 @@ dependencies = [
 
 [project.scripts]
 # pricedl = "main:main"
-pricedl = "pricedb.cli.cli"
+pricedl = "pricedl.cli:cli"
 
 [dependency-groups]
 dev = [
