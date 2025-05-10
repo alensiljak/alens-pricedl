@@ -35,15 +35,12 @@ def show_config():
     pass
 
 
-@click.command()
-@click.option("--debug/--no-debug", default=False, help="Enable debug logging")
-def main(debug):
+def main():
     '''
     Entry point for the `pricedb` utility.
     '''
     version = get_version()
     print(f'PriceDb v{version}')
-    print(debug)
 
     # load configuration
     # cfg = PriceDbConfig()
