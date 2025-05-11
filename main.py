@@ -7,17 +7,6 @@ Main entry point for the script executable.
 
 import importlib.metadata
 
-import click
-
-import pricedl
-import pricedl.cli
-
-
-def download_quotes():
-    '''
-    dl command
-    '''
-    pass
 
 def get_version():
     '''Identifies the package version'''
@@ -27,12 +16,6 @@ def get_version():
     except importlib.metadata.PackageNotFoundError:
         version = None
     return version
-
-def show_config():
-    '''
-    `config` command
-    '''
-    pass
 
 
 def main():

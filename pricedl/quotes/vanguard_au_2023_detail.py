@@ -80,11 +80,11 @@ class VanguardAu3Downloader:
 
         content_json = json.loads(content)
         data = content_json["data"][0]
-        
+
         prices = data["navPrices"]
         if not prices:
             raise ValueError(f"No price data found for symbol {symbol} at {url}")
-            
+
         latest = prices[0] # Assuming the first one is the latest
 
         date_str = latest["asOfDate"] # No need to replace quotes, json.loads handles it

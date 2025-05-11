@@ -88,6 +88,7 @@ def test_parse_price():
 
 # Example of how to run the downloader (optional, for direct execution)
 async def main():
+    '''manual test'''
     downloader = VanguardAu3Downloader()
     hy_symbol = SecuritySymbol("VANGUARD:HY")
     prop_symbol = SecuritySymbol("VANGUARD:PROP")
@@ -95,11 +96,13 @@ async def main():
     try:
         print(f"Fetching price for {hy_symbol}...")
         hy_price = await downloader.download(hy_symbol, "AUD")
-        print(f"VANGUARD:HY Price: Date={hy_price.date}, Value={hy_price.value}, Denom={hy_price.denom}, Currency={hy_price.currency}")
+        print(f"VANGUARD:HY Price: Date={hy_price.date}, Value={hy_price.value}, " \
+              "Denom={hy_price.denom}, Currency={hy_price.currency}")
 
         print(f"Fetching price for {prop_symbol}...")
         prop_price = await downloader.download(prop_symbol, "AUD")
-        print(f"VANGUARD:PROP Price: Date={prop_price.date}, Value={prop_price.value}, Denom={prop_price.denom}, Currency={prop_price.currency}")
+        print(f"VANGUARD:PROP Price: Date={prop_price.date}, Value={prop_price.value}, " \
+              "Denom={prop_price.denom}, Currency={prop_price.currency}")
 
     except Exception as e:
         print(f"An error occurred: {e}")
@@ -115,4 +118,3 @@ if __name__ == "__main__":
     # asyncio.run(test_hy_price_dl())
     # test_parse_price()
     print("Python script loaded. To run example usage, uncomment asyncio.run(main()) in __main__ block.")
-    print("To run tests, save the test code into a separate file (e.g., test_downloader.py) and run with pytest.")
