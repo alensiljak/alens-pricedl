@@ -72,7 +72,7 @@ async def download(exchange, symbol, currency, agent, file):
 
     sec_filter = SecurityFilter(currency, agent, exchange, symbol)
     logger.debug(f"Filter: {sec_filter}")
-    await pricedl.direct_dl.dl_quote(sec_filter)
+    await pricedl.direct_dl.dl_quotes(sec_filter)
 
 
 def get_version():

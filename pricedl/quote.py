@@ -69,7 +69,7 @@ class Quote:
             price.source = self.source or ""
 
             # Set the symbol here.
-            price.symbol = security_symbol
+            #price.symbol = security_symbol
             return price
         except Exception as error:
             raise ConnectionError(f"Error downloading price: {error}") from error

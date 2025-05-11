@@ -3,6 +3,7 @@ Price downloader for ECB data (currencies).
 """
 
 import datetime
+from decimal import ROUND_HALF_UP, Decimal
 import os
 import tempfile
 import eurofx
@@ -10,7 +11,7 @@ import eurofx
 from loguru import logger
 import pandas as pd
 
-from pricedl.model import Price
+from pricedl.model import Price, SecuritySymbol
 from pricedl.quote import Downloader
 
 
@@ -46,14 +47,20 @@ class EcbDownloader(Downloader):
         df = daily_df
         # rate = df.at['2025-05-10', 'USD']
         rate = df.iloc[0][symbol]
+        # Rates are inverse.
+        inv_rate = Decimal(1 / rate)
+        inv_rate = inv_rate.quantize(Decimal('0.0001'), rounding=ROUND_HALF_UP)
 
         # pd.Timestamp
         timestamp = df.index[0]
-        logger.debug(f"timestamp: {timestamp}")
+        # logger.debug(f"timestamp: {timestamp}")
         date = timestamp.date()
 
-        return Price(symbol=security_symbol, date=date, value=rate, currency=currency,
-                     source="ECB")
+        # The rates inverted. They are for 1 Euro (EUR/AUD).
+
+        return Price(symbol=security_symbol,
+                     date=date, value=inv_rate,
+                     currency=currency, source="ECB")
 
     def daily_cache_exists(self):
         """

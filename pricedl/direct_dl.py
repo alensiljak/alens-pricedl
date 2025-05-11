@@ -5,6 +5,7 @@ The price downloader that downloads the prices directly into the list.
 from pathlib import Path
 from typing import List, Tuple
 import csv
+import asyncclick as click
 from loguru import logger
 from pricedl.config import PriceDbConfig
 from pricedl.price_flat_file import PriceFlatFile, PriceRecord
@@ -54,7 +55,7 @@ def get_paths() -> Tuple[Path, Path]:
     return symbols_path, prices_path
 
 
-async def dl_quote(security_filter: SecurityFilter):
+async def dl_quotes(security_filter: SecurityFilter):
     """
     Download directly into the price file in ledger format.
     Maintains the latest prices in the price file by updating the prices for
@@ -70,30 +71,35 @@ async def dl_quote(security_filter: SecurityFilter):
     # load prices file
     prices_file = PriceFlatFile.load(prices_path)
 
-    # todo progress bar
+    # progress bar
+    with click.progressbar(length=len(securities), label="Downloading prices") as bar:
+        for sec in securities:
+            logger.debug(f"Processing symbol: {sec.symbol}, {sec.updater_symbol}")
+            # Use the Updater Symbol, if specified. This is provider-specific.
+            mnemonic = sec.updater_symbol if sec.updater_symbol else sec.symbol
+            symbol = SecuritySymbol(sec.namespace or "", mnemonic)
+            logger.debug(f"Fetching price for symbol {symbol}")
 
-    for sec in securities:
-        logger.debug(f"Processing symbol: {sec.symbol}, {sec.updater_symbol}")
-        # Use the Updater Symbol, if specified. This is provider-specific.
-        mnemonic = sec.updater_symbol if sec.updater_symbol else sec.symbol
-        symbol = SecuritySymbol(sec.namespace or "", mnemonic)
-        logger.debug(f"Fetching price for symbol {symbol}")
+            # todo update progress bar
 
-        # todo update progress bar
+            price = await download_price(
+                symbol, currency=sec.currency, agent=sec.updater
+            )
+            logger.debug(f"Price: {price}")
 
-        price = await download_price(symbol, currency=sec.currency, agent=sec.updater)
-        logger.debug(f"Price: {price}")
+            # Convert the price to ledger format record.
+            price_record = PriceRecord.from_price_model(price)
+            # Use ledger symbol.
+            price_record.symbol = sec.ledger_symbol or sec.symbol
 
-        # Convert the price to ledger format record.
-        price_record = PriceRecord.from_price_model(price)
-        # Use ledger symbol.
-        price_record.symbol = sec.ledger_symbol or sec.symbol
+            # Appent to the price file. The symbol is used as the key.
+            prices_file.prices[price_record.symbol] = price_record
 
-        # Appent to the price file. The symbol is used as the key.
-        prices_file.prices[price_record.symbol] = price_record
+            # Save the price file after every price fetch.
+            prices_file.save()
 
-        # Save the price file after every price fetch.
-        prices_file.save()
+            # update progress bar
+            bar.update(1)
 
 
 def filter_securities(securities_list, filter_val):
@@ -156,7 +162,5 @@ async def download_price(
     # price = dl.download(symbol, currency, agent)
     if prices is None:
         raise LookupError(f"No price downloaded for {symbol}")
-    # if prices == 0:
-    #     raise LookupError(f"No price found for {symbol}")
 
     return prices[0]
