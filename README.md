@@ -11,7 +11,7 @@ uv tool install as-price-download
 ```
 
 # Run
-Example configuration file (.config/pricedb/pricedb.toml):
+Example configuration file (.config/pricedb/pricedl.toml):
 ```
 price_database_path = ":memory:"
 alphavantage_api_key = ""
