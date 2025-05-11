@@ -61,12 +61,12 @@ class Quote:
         currency: str = self.currency or "EUR"
 
         logger.debug(
-            "Calling download with symbol %s and currency %s", security_symbol, currency
+            f"Calling download with symbol {security_symbol} and currency {currency}"
         )
 
         try:
             price = await downloader.download(security_symbol, currency)
-            price.source = self.source or ''
+            price.source = self.source or ""
 
             # Set the symbol here.
             price.symbol = security_symbol

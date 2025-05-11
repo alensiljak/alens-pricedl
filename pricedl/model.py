@@ -53,6 +53,9 @@ class Price:
     # denom_as_scale: int # The scale (number of decimal places)
     source: str = ''
 
+    def __str__(self):
+        return f"{self.symbol}: {self.value} {self.currency} ({self.source})"
+
     # def to_decimal(self) -> Decimal:
     #     '''
     #     Converts the raw integer value and scale into a Decimal.

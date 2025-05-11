@@ -92,8 +92,8 @@ async def dl_quote(security_filter: SecurityFilter):
         # Appent to the price file. The symbol is used as the key.
         prices_file.prices[price_record.symbol] = price_record
 
-    # Save the price file.
-    prices_file.save()
+        # Save the price file after every price fetch.
+        prices_file.save()
 
 
 def filter_securities(securities_list, filter_val):

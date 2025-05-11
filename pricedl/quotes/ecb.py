@@ -49,6 +49,7 @@ class EcbDownloader(Downloader):
 
         # pd.Timestamp
         timestamp = df.index[0]
+        logger.debug(f"timestamp: {timestamp}")
         date = timestamp.date()
 
         return Price(symbol=security_symbol, date=date, value=rate, currency=currency,
