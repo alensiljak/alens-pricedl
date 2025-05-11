@@ -7,7 +7,7 @@ from typing import List, Optional, Tuple
 import csv
 from loguru import logger
 from pricedl.config import PriceDbConfig
-from pricedl.price_flat_file import PriceFlatFile
+from pricedl.price_flat_file import PriceFlatFile, PriceRecord
 from pricedl.quote import Quote
 from .model import Price, SecurityFilter, SecuritySymbol, SymbolMetadata
 
@@ -68,7 +68,7 @@ async def dl_quote(security_filter: SecurityFilter):
     securities = get_securities(symbols_path, security_filter)
 
     # load prices file
-    prices_file = PriceFlatFile(prices_path)
+    prices_file = PriceFlatFile.load(prices_path)
 
     # todo progress bar
 
@@ -84,6 +84,7 @@ async def dl_quote(security_filter: SecurityFilter):
         logger.debug(f"Price: {price}")
 
         # Convert the price to ledger format
+        price_record = PriceRecord.from_price_model(price)
 
         # Appent to the price file
 

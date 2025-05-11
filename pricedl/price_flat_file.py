@@ -1,127 +1,223 @@
-'''
-    A flat file for prices.
-    Ledger price file.
-'''
-import csv
-import os
-from dataclasses import dataclass
-from datetime import datetime
-from pathlib import Path
-from typing import Dict, Optional
+"""
+Maintains the prices in a flat-file in Ledger format.
+P 2023-04-14 00:00:00 GBP 1.132283 EUR
+"""
 
-from .model import Price
+from datetime import datetime, time as dt_time
+from decimal import Decimal, InvalidOperation
+from typing import Dict, List
+
+from pricedl.model import Price
+
+# --- Constants ---
+DATE_TIME_FORMAT: str = "%Y-%m-%d %H:%M:%S"
 
 
-@dataclass
+# --- Core Logic ---
 class PriceRecord:
-    """
-    Record row in the prices file.
-    """
+    """A row in the prices file"""
 
-    symbol: str
-    currency: str
-    date: datetime
-    value: float
-    time: Optional[datetime] = None
-    source: str = ""
+    def __init__(
+        self, datetime_val: datetime, symbol: str, value: Decimal, currency: str
+    ):
+        self.datetime: datetime = datetime_val
+        self.symbol: str = symbol
+        self.value: Decimal = value
+        self.currency: str = currency
+
+    def __str__(self) -> str:
+        """
+        Formats the PriceRecord in Ledger flat-file format.
+        Example: "P 2023-04-14 00:00:00 GBP 1.132283 EUR"
+                 "P 2023-04-15 VEUR_AS 13.24 EUR" (if time is 00:00:00)
+        """
+        if self.datetime.time() == dt_time(0, 0, 0):
+            date_time_string = self.datetime.strftime("%Y-%m-%d")
+        else:
+            date_time_string = self.datetime.strftime(DATE_TIME_FORMAT)
+
+        return f"P {date_time_string} {self.symbol} {self.value} {self.currency}"
+
+    def __repr__(self) -> str:
+        return (
+            f"PriceRecord(datetime_val={self.datetime!r}, symbol={self.symbol!r}, "
+            f"value={self.value!r}, currency={self.currency!r})"
+        )
 
     @classmethod
-    def from_price(cls, price: Price):
+    def from_price_model(cls, item: Price) -> "PriceRecord":
         """
-        Create a PriceRecord from a Price object.
+        Creates a PriceRecord from a PriceModelPython instance.
         """
+        time_str = "00:00:00" if not item.time else item.time
+        date_time_str = f"{item.date} {time_str}"
+
+        try:
+            dt_val = datetime.strptime(date_time_str, DATE_TIME_FORMAT)
+        except ValueError as e:
+            # Corresponds to .expect("parsed date/time")
+            raise ValueError(
+                f"Failed to parse date/time string: '{date_time_str}' from PriceModel - {e}"
+            ) from e
+
         return cls(
-            symbol=str(price.symbol),
-            currency=price.currency,
-            date=price.date,
-            value=price.value,
-            time=price.time,
-            source=price.source,
+            datetime_val=dt_val,
+            symbol=item.symbol,
+            value=item.to_decimal(),
+            currency=item.currency,
+        )
+
+
+def _parse_with_time(items: List[str]) -> PriceRecord:
+    # items: [date_str, time_str, symbol, value_str, currency]
+    date_time_str = f"{items[0]} {items[1]}"
+    try:
+        dt_val = datetime.strptime(date_time_str, DATE_TIME_FORMAT)
+    except ValueError as e:
+        raise ValueError(
+            f"Failed to parse date/time string: '{date_time_str}' - {e}"
+        ) from e
+
+    try:
+        # rust_decimal::Decimal::from_str_exact
+        value = Decimal(items[3])
+    except InvalidOperation as e:
+        raise ValueError(f"Failed to parse decimal value: '{items[3]}'") from e
+
+    return PriceRecord(
+        datetime_val=dt_val, symbol=items[2], value=value, currency=items[4]
+    )
+
+
+def _parse_with_no_time(items: List[str]) -> PriceRecord:
+    # items: [date_str, symbol, value_str, currency]
+    date_time_str = f"{items[0]} 00:00:00"
+    try:
+        dt_val = datetime.strptime(date_time_str, DATE_TIME_FORMAT)
+    except ValueError as e:
+        raise ValueError(
+            f"Failed to parse date string: '{items[0]}' (interpreted as '{date_time_str}') - {e}"
+        )
+
+    try:
+        value = Decimal(items[2])
+    except InvalidOperation:
+        raise ValueError(f"Failed to parse decimal value: '{items[2]}'")
+
+    return PriceRecord(
+        datetime_val=dt_val, symbol=items[1], value=value, currency=items[3]
+    )
+
+
+def _parse_line(line: str) -> PriceRecord:
+    """
+    Parses a single line from the price file.
+    Example: "P 2023-04-14 00:00:00 GBP 1.132283 EUR"
+    """
+    parts = line.split()
+
+    if not parts or parts[0] != "P":
+        raise ValueError(f"Line must start with 'P'. Got: '{line}'")
+
+    # data_parts exclude the initial 'P'
+    data_parts = parts[1:]
+    num_data_parts = len(data_parts)
+
+    if num_data_parts == 4:  # P date symbol value currency
+        return _parse_with_no_time(data_parts)
+    elif num_data_parts == 5:  # P date time symbol value currency
+        return _parse_with_time(data_parts)
+    else:
+        # Corresponds to panic!("invalid number of parts parsed from the line!")
+        raise ValueError(
+            f"Invalid number of parts ({num_data_parts + 1} including 'P') in line: '{line}'"
         )
 
 
 class PriceFlatFile:
     """
-    Flat file implementation of the PriceDatabase.
+    A handler for the prices file.
     """
-    def __init__(self, file_path: Path):
-        self.file_path = file_path
+
+    def __init__(self, file_path: str, load_on_init: bool = False):
+        self.file_path: str = file_path
         self.prices: Dict[str, PriceRecord] = {}
-        self._load()
+        if load_on_init:
+            self._load_data()
 
-    def _load(self):
-        """Load prices from the flat file."""
-        if not os.path.exists(self.file_path):
-            return
+    @classmethod
+    def load(cls, file_path: str) -> "PriceFlatFile":
+        """Load prices from a text file."""
+        instance = cls(
+            file_path, load_on_init=False
+        )  # Avoid double loading if __init__ also loads
+        instance._load_data()
+        return instance
 
-        with open(self.file_path, "r", encoding="utf-8") as f:
-            reader = csv.reader(f)
-            next(reader)  # Skip header
-            for row in reader:
-                if len(row) < 5:
-                    continue
+    def _load_data(self):
+        """Internal method to read and parse the price file."""
+        try:
+            with open(self.file_path, "r", encoding="utf-8") as f:
+                content = f.read()
+        except FileNotFoundError as ex:
+            # Corresponds to .expect("Error reading rates file")
+            raise FileNotFoundError(
+                f"Error reading rates file: {self.file_path} not found."
+            ) from ex
+        except Exception as e:
+            raise IOError(f"Error reading rates file {self.file_path}: {e}") from e
 
-                symbol = row[0]
-                currency = row[1]
-                date_str = row[2]
-                time_str = row[3] if row[3] else None
-                value = float(row[4])
-                source = row[5] if len(row) > 5 else ""
+        self.prices.clear()  # Clear any existing prices
+        lines = content.splitlines()
 
-                date = datetime.strptime(date_str, "%Y-%m-%d")
-                time = datetime.strptime(time_str, "%H:%M:%S") if time_str else None
-
-                self.prices[symbol] = PriceRecord(
-                    symbol=symbol,
-                    currency=currency,
-                    date=date,
-                    time=time,
-                    value=value,
-                    source=source,
+        for line_num, line_content in enumerate(lines):
+            line_content = line_content.strip()
+            if not line_content or line_content.startswith(
+                "#"
+            ):  # Skip empty or comment lines
+                continue
+            try:
+                price_record = _parse_line(line_content)
+                # Last price for a symbol wins, as HashMap does in Rust
+                self.prices[price_record.symbol] = price_record
+            except ValueError as e:
+                # In Rust, this would likely be a panic or logged error.
+                # Here, we print a warning and skip the line.
+                print(
+                    f"Warning: Skipping malformed line {line_num + 1} in '{self.file_path}': \"{line_content}\" - {e}"
                 )
 
     def save(self):
-        """Save prices to the flat file."""
-        os.makedirs(os.path.dirname(self.file_path), exist_ok=True)
+        """Saves the current prices to the file, ordered by date/time then symbol."""
+        # Order by date/time, then symbol
+        sorted_price_records = sorted(
+            self.prices.values(), key=lambda pr: (pr.datetime, pr.symbol)
+        )
 
-        with open(self.file_path, "w", newline="", encoding='utf-8') as f:
-            writer = csv.writer(f)
-            writer.writerow(["Symbol", "Currency", "Date", "Time", "Value", "Source"])
+        output_lines = [str(pr) for pr in sorted_price_records]
 
-            # Sort by date/time + symbol
-            sorted_prices = sorted(
-                self.prices.values(),
-                key=lambda p: (p.date, p.time or datetime.min, p.symbol),
-            )
+        output_content = "\n".join(output_lines)
+        if (
+            output_lines
+        ):  # Add a trailing newline if there's content, matching Rust behavior
+            output_content += "\n"
 
-            for price in sorted_prices:
-                writer.writerow(
-                    [
-                        price.symbol,
-                        price.currency,
-                        price.date.strftime("%Y-%m-%d"),
-                        price.time.strftime("%H:%M:%S") if price.time else "",
-                        price.value,
-                        price.source,
-                    ]
-                )
+        try:
+            with open(self.file_path, "w", encoding="utf-8") as f:
+                f.write(output_content)
+        except IOError as e:
+            # Corresponds to .expect("saved successfully")
+            raise IOError(f"Failed to save prices to {self.file_path}: {e}") from e
 
-    def add_price(self, price: PriceRecord):
-        """Add a price record to the collection."""
-        self.prices[price.symbol] = price
+    # Helper for tests, similar to direct manipulation in Rust tests
+    def add_price_record(self, record: PriceRecord):
+        """Adds or updates a price record in the internal dictionary."""
+        self.prices[record.symbol] = record
 
-    def export_ledger(self, output_path: str):
-        """Export prices in Ledger format."""
-        with open(output_path, "w", encoding='utf-8') as f:
-            # Sort by date/time + symbol
-            sorted_prices = sorted(
-                self.prices.values(),
-                key=lambda p: (p.date, p.time or datetime.min, p.symbol),
-            )
-
-            for price in sorted_prices:
-                date_str = price.date.strftime("%Y-%m-%d")
-                time_str = f" {price.time.strftime('%H:%M:%S')}" if price.time else ""
-                f.write(
-                    f"P {date_str}{time_str} {price.symbol} {price.value} {price.currency}\n"
-                )
+    @staticmethod
+    def default() -> "PriceFlatFile":
+        """Creates an empty PriceFlatFile, similar to Rust's Default trait."""
+        # Default file_path could be empty or a specific default if desired.
+        # For now, let's assume it needs a path, even if not immediately used for loading.
+        # This matches the Rust tests which use PriceFlatFile::default() then add.
+        return PriceFlatFile(file_path="", load_on_init=False)
