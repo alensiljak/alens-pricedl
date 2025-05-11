@@ -7,6 +7,7 @@ from typing import List, Optional, Tuple
 import csv
 from loguru import logger
 from pricedl.config import PriceDbConfig
+from pricedl.price_flat_file import PriceFlatFile
 from pricedl.quote import Quote
 from .model import Price, SecurityFilter, SecuritySymbol, SymbolMetadata
 
@@ -66,7 +67,9 @@ async def dl_quote(security_filter: SecurityFilter):
     # load the symbols table for mapping
     securities = get_securities(symbols_path, security_filter)
 
-    # todo: load prices file
+    # load prices file
+    prices_file = PriceFlatFile(prices_path)
+
     # todo progress bar
 
     for sec in securities:

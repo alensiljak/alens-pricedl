@@ -67,7 +67,8 @@ class Quote:
             price.symbol = security_symbol
             return price
         except Exception as error:
-            raise Exception(f"Error downloading price: {error}")
+            raise ConnectionError(f"Error downloading price: {error}") from error
+
 
     def get_downloader(self) -> Downloader:
         """Get the appropriate downloader based on the source."""
