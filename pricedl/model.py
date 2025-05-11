@@ -26,9 +26,9 @@ class SecuritySymbol:
         return f"{self.namespace}:{self.mnemonic}"
 
     @classmethod
-    def from_string(cls, symbol_str: str):
+    def from_str(cls, symbol_str: str):
         '''
-        Create a SecuritySymbol from a string. i.e. "NASDAQ:OPI"
+        Create a SecuritySymbol from a str. i.e. "NASDAQ:OPI"
         '''
         parts = symbol_str.split(":")
         if len(parts) != 2:
@@ -47,3 +47,26 @@ class Price:
     value: float
     time: Optional[datetime] = None
     source: str = ""
+
+
+@dataclass
+class SymbolMetadata:
+    '''
+    Symbol row in the symbols.csv file.
+    '''
+    # Exchange
+    namespace: Optional[str]
+    # Symbol at the exchange
+    symbol: str
+    # The currency used to express the symbol's price.
+    currency: Optional[str]
+    # The name of the price update provider.
+    updater: Optional[str]
+    # The symbol, as used by the updater.
+    updater_symbol: Optional[str]
+    # The symbol, as used in the Ledger journal.
+    ledger_symbol: Optional[str]
+    # The symbol, as used at Interactive Brokers.
+    ib_symbol: Optional[str]
+    # Remarks
+    remarks: Optional[str]
