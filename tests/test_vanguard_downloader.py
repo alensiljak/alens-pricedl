@@ -6,6 +6,7 @@ import pytest
 from pricedl.quotes.vanguard_au_2023_detail import VanguardAu3Downloader, SecuritySymbol, Price # Assuming the main code is in vanguard_au_2023_detail.py
 
 def test_url_generation():
+    '''Test if the URL gets correctly generated for a fund'''
     symbol = SecuritySymbol("VANGUARD:HY")
     dl = VanguardAu3Downloader()
     actual = dl.get_url(symbol)
