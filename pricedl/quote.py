@@ -72,8 +72,8 @@ class Quote:
 
     def get_downloader(self) -> Downloader:
         """Get the appropriate downloader based on the source."""
-        # from .quotes.fixerio import Fixerio
-        from pricedl.quotes.yfinance import YfinanceDownloader
+        from .quotes.fixerio import Fixerio
+        from .quotes.yfinance import YfinanceDownloader
         from .quotes.vanguard_au_2023_detail import VanguardAu3Downloader
         # from .quotes.yahoo_finance_downloader import YahooFinanceDownloader
 
@@ -88,8 +88,7 @@ class Quote:
             return YfinanceDownloader()
         elif source == "fixerio":
             logging.debug("using fixerio")
-            # return Fixerio()
-            raise NotImplementedError("not implemented")
+            return Fixerio()
         elif source == "vanguard_au":
             logging.debug("using vanguard")
             return VanguardAu3Downloader()

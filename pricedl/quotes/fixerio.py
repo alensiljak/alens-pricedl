@@ -13,6 +13,9 @@ from typing import Dict, Any, Optional
 
 import aiohttp
 
+from pricedl.model import Price, SecuritySymbol
+from pricedl.quote import Downloader
+
 # --- Global Constants ---
 APP_NAME = "pricedb-py"  # Adapted for Python version
 
@@ -22,48 +25,6 @@ logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(name)s - %(message)s"
 )
 log = logging.getLogger(__name__)
-
-
-# --- Data Structures ---
-@dataclass
-class Price:
-    symbol: str  # The symbol of the security/currency this price is for (e.g., "AUD")
-    id: int
-    date: str  # YYYY-MM-DD
-    time: str  # HH:MM:SS
-    value: int  # Mantissa of the price value
-    denom: int  # Denominator (10^scale) for the price value
-    currency: str  # The currency in which the price is expressed (e.g., "EUR")
-
-    @staticmethod
-    def default_time() -> str:
-        return "00:00:00"
-
-    def to_decimal(self) -> Decimal:
-        """Converts the stored value/denom back to a Decimal."""
-        if self.denom == 0:
-            log.error(f"Price for {self.symbol} has zero denominator.")
-            return Decimal(0)
-        return Decimal(self.value) / Decimal(self.denom)
-
-
-@dataclass
-class SecuritySymbol:
-    namespace: str
-    mnemonic: str
-
-    @classmethod
-    def new(cls, symbol_str: str) -> "SecuritySymbol":
-        """
-        Parses a symbol string like "NAMESPACE:MNEMONIC" into its components.
-        If no colon is present, the entire string is treated as the mnemonic,
-        and namespace defaults to "CURRENCY".
-        """
-        parts = symbol_str.split(":", 1)
-        if len(parts) == 2:
-            return cls(namespace=parts[0].upper(), mnemonic=parts[1].upper())
-        else:
-            return cls(namespace="CURRENCY", mnemonic=symbol_str.upper())
 
 
 # --- Helper Functions ---
@@ -174,9 +135,8 @@ def map_rates_to_price(rates_json: Dict[str, Any], target_symbol: str) -> Price:
 
     return Price(
         symbol=target_symbol.upper(),
-        id=0,
         date=date_str,
-        time=Price.default_time(),
+        time=None,
         value=val_mantissa,
         denom=val_denom,
         currency=base_currency,
@@ -205,7 +165,7 @@ def read_rates_from_cache() -> Dict[str, Any]:
 # --- Fixerio Class (Downloader Implementation) ---
 
 
-class Fixerio:
+class Fixerio(Downloader):
     """
     Downloader for currency exchange rates from Fixer.io.
     Implements caching of daily rates.
