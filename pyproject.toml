@@ -9,6 +9,7 @@ dependencies = [
     "asyncclick>=8.1.8",
     "dotenv>=0.9.9",
     "loguru>=0.7.3",
+    "pyeurofx>=0.6.4",
     "yfinance>=0.2.59",
 ]
 
@@ -23,9 +24,10 @@ dev = [
 ]
 
 [tool.pytest.ini_options]
-pythonpath = [
-  "."
-]
+# pythonpath = [
+#   "."
+# ]
+asyncio_default_fixture_loop_scope = "function"
 
 # Adding a build system causes the package itself to be installed in the .venv,
 # and not just the dependencies.

@@ -126,19 +126,19 @@ def map_rates_to_price(rates_json: Dict[str, Any], target_symbol: str) -> Price:
         if exponent_int < 0:
             val_scale = -exponent_int
     else:
-        log.error(
-            f"Unexpected exponent type for Decimal {final_decimal_for_price}: {exponent_int}"
-        )
+        log.error("Unexpected exponent type for Decimal %s: %s",
+            final_decimal_for_price, exponent_int)
         raise ValueError(f"Unexpected exponent type for Decimal: {exponent_int}")
 
     val_denom = 10**val_scale
 
+    symbol = SecuritySymbol("CURRENCY", f"{target_symbol.upper()}")
     return Price(
-        symbol=target_symbol.upper(),
+        symbol=symbol,
         date=date_str,
         time=None,
-        value=val_mantissa,
-        denom=val_denom,
+        # value=val_mantissa,
+        # denom=val_denom,
         currency=base_currency,
     )
 
@@ -348,9 +348,9 @@ async def main_example():
 
     eur_base = "EUR"
     symbols_to_test = [
-        SecuritySymbol.new("CURRENCY:USD"),
-        SecuritySymbol.new("CURRENCY:GBP"),
-        SecuritySymbol.new("CURRENCY:AUD"),
+        SecuritySymbol("CURRENCY", "USD"),
+        SecuritySymbol("CURRENCY", "GBP"),
+        SecuritySymbol("CURRENCY", "AUD"),
     ]
 
     for symbol in symbols_to_test:
