@@ -45,20 +45,26 @@ class YfinanceDownloader(Downloader):
 
     async def download(self, security_symbol: SecuritySymbol, currency: str) -> Price:
         """Download price for the given security symbol."""
+        from datetime import datetime
+
         yahoo_symbol = self.get_yahoo_symbol(security_symbol)
 
         ticker = yf.Ticker(yahoo_symbol)
 
         # Get historical data (for the last 1 day to ensure you get the latest available)
         hist = ticker.history(period="1d")
+
         # Get the last date and the last price
-        date = hist.index[-1]
-        # date = hist.at[1, 'Date']
+        timestamp = hist.index[-1]
+        dt = timestamp.date()
+        date: str = dt.isoformat()
+
         value = hist['Close'].iloc[-1]
 
         # date = ticker.fast_info.get("lastTradeDate")
         # value = ticker.fast_info.get("lastPrice")
         currency = ticker.fast_info.get("currency")
 
-        price = Price(security_symbol, currency, date, value, None, "yfinance")
+        price = Price(symbol=security_symbol, date=date, time=None,
+                      value=value, currency=currency, source="yfinance")
         return price

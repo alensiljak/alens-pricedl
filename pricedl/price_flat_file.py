@@ -5,6 +5,7 @@ P 2023-04-14 00:00:00 GBP 1.132283 EUR
 
 from datetime import datetime, time as dt_time
 from decimal import Decimal, InvalidOperation
+from pathlib import Path
 from typing import Dict, List
 
 from pricedl.model import Price
@@ -46,9 +47,9 @@ class PriceRecord:
 
     @classmethod
     def from_price_model(cls, item: Price) -> "PriceRecord":
-        """
+        '''
         Creates a PriceRecord from a PriceModelPython instance.
-        """
+        '''
         time_str = "00:00:00" if not item.time else item.time
         date_time_str = f"{item.date} {time_str}"
 
@@ -62,7 +63,7 @@ class PriceRecord:
 
         return cls(
             datetime_val=dt_val,
-            symbol=item.symbol,
+            symbol=str(item.symbol),
             value=item.to_decimal(),
             currency=item.currency,
         )
@@ -139,14 +140,14 @@ class PriceFlatFile:
     A handler for the prices file.
     """
 
-    def __init__(self, file_path: str, load_on_init: bool = False):
-        self.file_path: str = file_path
+    def __init__(self, file_path: Path, load_on_init: bool = False):
+        self.file_path: Path = file_path
         self.prices: Dict[str, PriceRecord] = {}
         if load_on_init:
             self._load_data()
 
     @classmethod
-    def load(cls, file_path: str) -> "PriceFlatFile":
+    def load(cls, file_path: Path) -> "PriceFlatFile":
         """Load prices from a text file."""
         instance = cls(
             file_path, load_on_init=False

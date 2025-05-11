@@ -78,17 +78,22 @@ async def dl_quote(security_filter: SecurityFilter):
         mnemonic = sec.updater_symbol if sec.updater_symbol else sec.symbol
         symbol = SecuritySymbol(sec.namespace or "", mnemonic)
         logger.debug(f"Fetching price for symbol {symbol}")
-        # todo show progress
+
+        # todo update progress bar
 
         price = await download_price(symbol, currency=sec.currency, agent=sec.updater)
         logger.debug(f"Price: {price}")
 
         # Convert the price to ledger format
         price_record = PriceRecord.from_price_model(price)
+        # Use ledger symbol.
+        price_record.symbol = sec.symbol
 
-        # Appent to the price file
+        # Appent to the price file. The symbol is used as the key.
+        prices_file.prices[price_record.symbol] = price_record
 
-        # Save the price file.
+    # Save the price file.
+    prices_file.save()
 
 
 def filter_securities(securities_list, filter_val):

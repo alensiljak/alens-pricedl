@@ -45,29 +45,38 @@ class Price:
     symbol: SecuritySymbol
     date: datetime
     time: Optional[datetime] = None
-    value: float
-    currency: str
-    source: str = ""
-    value_int_part: int  # The integer part of the value (mantissa)
-    denom_as_scale: int  # The scale (number of decimal places)
+    value: float = 0.0
+    currency: str = ''
+    # value_int_part: int # The integer part of the value (mantissa)
+    # denom_as_scale: int # The scale (number of decimal places)
+    # arguments with defaults must come at the end.
+    source: str = ''
 
     def to_decimal(self) -> Decimal:
-        """
+        '''
         Converts the raw integer value and scale into a Decimal.
         This mimics rust_decimal::Decimal::new(value, scale).
-        """
-        s_val = str(self.value_int_part)
-        sign = 0
-        if self.value_int_part < 0:
-            sign = 1
-            s_val = s_val[1:]
+        '''
+        result = Decimal(str(self.value))
+        return result
 
-        digits = tuple(map(int, list(s_val)))
+    # def to_decimal(self) -> Decimal:
+    #     """
+    #     Converts the raw integer value and scale into a Decimal.
+    #     This mimics rust_decimal::Decimal::new(value, scale).
+    #     """
+    #     s_val = str(self.value_int_part)
+    #     sign = 0
+    #     if self.value_int_part < 0:
+    #         sign = 1
+    #         s_val = s_val[1:]
 
-        # In Python's Decimal, exponent is the negative of scale.
-        exponent = -self.denom_as_scale
+    #     digits = tuple(map(int, list(s_val)))
 
-        return Decimal((sign, digits, exponent))
+    #     # In Python's Decimal, exponent is the negative of scale.
+    #     exponent = -self.denom_as_scale
+
+    #     return Decimal((sign, digits, exponent))
 
 
 @dataclass
