@@ -3,21 +3,14 @@ Main entry point for the script executable.
 '''
 import importlib.metadata
 
-# import asyncio
 import asyncclick as click
 from loguru import logger
 import dotenv
-# import os
-# from datetime import datetime
-# from typing import List, Optional
 
 import pricedl
 import pricedl.direct_dl
 from pricedl.config import PriceDbConfig
 from pricedl.model import SecurityFilter
-# from pricedl.model import SecuritySymbol
-# from pricedl.price_flat_file import PriceFlatFile, PriceRecord
-# from pricedl.quotes import get_quote
 
 dotenv.load_dotenv()
 

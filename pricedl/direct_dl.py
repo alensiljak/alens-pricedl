@@ -3,7 +3,7 @@ The price downloader that downloads the prices directly into the list.
 """
 
 from pathlib import Path
-from typing import List, Optional, Tuple
+from typing import List, Tuple
 import csv
 from loguru import logger
 from pricedl.config import PriceDbConfig
@@ -140,7 +140,7 @@ def load_symbols(symbols_path: Path):
 
 
 async def download_price(
-    symbol: SecuritySymbol, currency: Optional[str], agent: Optional[str]
+    symbol: SecuritySymbol, currency: str | None, agent: str | None = None
 ) -> Price:
     """
     Download the price for the given symbol.

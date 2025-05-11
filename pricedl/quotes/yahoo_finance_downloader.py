@@ -1,10 +1,11 @@
 """
 Yahoo Finance downloader implementation.
 """
+
 import logging
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 import aiohttp
-from typing import Dict, Optional
+from typing import Dict
 from decimal import Decimal
 
 from ..model import Price, SecuritySymbol
@@ -13,7 +14,7 @@ from ..quote import Downloader
 
 class YahooFinanceDownloader(Downloader):
     """YahooFinanceDownloader"""
-    
+
     def __init__(self):
         self.url = "https://query1.finance.yahoo.com/v8/finance/chart/"
         self.namespaces = {
@@ -52,37 +53,40 @@ class YahooFinanceDownloader(Downloader):
         # Ensure that there is no error
         assert error is None, f"Error in Yahoo Finance response: {error}"
 
-        result = Price()
-
         meta = chart.get("result", [{}])[0].get("meta", {})
         assert meta, "No metadata found in Yahoo Finance response"
 
         # Price
         market_price = meta.get("regularMarketPrice")
-        d = Decimal(str(market_price))
-        # In Rust: result.value = d.mantissa().to_i64().unwrap();
-        # In Rust: result.denom = 10_i64.pow(d.scale());
-        # In Python, we'll just store the decimal value directly
-        result.value = d
+        value = Decimal(str(market_price))
 
         # Currency
-        result.currency = meta.get("currency")
+        currency = meta.get("currency")
 
         # Date and Time
         seconds = meta.get("regularMarketTime")
         offset = meta.get("gmtoffset", 0)
-        
+
         # Create timezone with the offset
-        tz = timezone(datetime.timedelta(seconds=offset))
-        
+        tz = timezone(timedelta(seconds=offset))
+
         # Create datetime from timestamp
         dt = datetime.fromtimestamp(seconds, tz=timezone.utc)
         # Apply the timezone offset
         dt = dt.astimezone(tz)
-        
+
         # Set date and time
-        result.date = dt.date().isoformat()
-        result.time = dt.time().isoformat()
+        d = dt.date()
+        t = dt.time()
+
+        result = Price(
+            symbol=SecuritySymbol("", ""),
+            date=d,
+            time=t,
+            value=value,
+            currency=currency,
+            source="yahoo",
+        )
 
         return result
 
@@ -92,10 +96,10 @@ class YahooFinanceDownloader(Downloader):
 
         logging.debug(f"fetching from {url}")
 
-        user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0"
-        headers = {
-            "User-Agent": user_agent
-        }
+        # user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0"
+        user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+
+        headers = {"User-Agent": user_agent}
 
         async with aiohttp.ClientSession() as session:
             async with session.get(url, headers=headers) as response:
@@ -106,8 +110,8 @@ class YahooFinanceDownloader(Downloader):
                 body = await response.json()
 
                 result = self.get_price_from_json(body)
-                
+
                 # Set the symbol
-                result.symbol = str(security_symbol)
+                result.symbol = security_symbol
 
                 return result

@@ -2,6 +2,7 @@
 Downloader using yfinance package.
 """
 
+from datetime import datetime
 import yfinance as yf
 
 from pricedl.model import Price, SecuritySymbol
@@ -45,26 +46,86 @@ class YfinanceDownloader(Downloader):
 
     async def download(self, security_symbol: SecuritySymbol, currency: str) -> Price:
         """Download price for the given security symbol."""
-        from datetime import datetime
-
         yahoo_symbol = self.get_yahoo_symbol(security_symbol)
 
         ticker = yf.Ticker(yahoo_symbol)
 
+        # price = self.get_price_from_history(ticker, security_symbol)
+        # price = self.get_price_from_fastinfo(ticker, security_symbol)
+        price = self.get_price_from_info(ticker, security_symbol)
+        return price
+
+    def get_price_from_history(
+        self, ticker: yf.Ticker, security_symbol: SecuritySymbol
+    ) -> Price:
+        """
+        Get price from history
+        """
         # Get historical data (for the last 1 day to ensure you get the latest available)
         hist = ticker.history(period="1d")
 
         # Get the last date and the last price
         timestamp = hist.index[-1]
         dt = timestamp.date()
-        #date: str = dt.isoformat()
 
-        value = hist['Close'].iloc[-1]
+        value = hist["Close"].iloc[-1]
 
         # date = ticker.fast_info.get("lastTradeDate")
         # value = ticker.fast_info.get("lastPrice")
         currency = ticker.fast_info.get("currency")
 
-        price = Price(symbol=security_symbol, date=dt, time=None,
-                      value=value, currency=currency, source="yfinance")
+        price = Price(
+            symbol=security_symbol,
+            date=dt,
+            time=None,
+            value=value,
+            currency=currency,
+            source="yfinance",
+        )
+        return price
+
+    def get_price_from_fastinfo(
+        self, ticker: yf.Ticker, security_symbol: SecuritySymbol
+    ) -> Price:
+        """
+        Get price from quick info
+        """
+        # Get the last date and the last price
+        date = ticker.fast_info.get("lastTradeDate")
+        value = ticker.fast_info.get("lastPrice")
+        currency = ticker.fast_info.get("currency")
+
+        price = Price(
+            symbol=security_symbol,
+            date=date,
+            time=None,
+            value=value,
+            currency=currency,
+            source="yfinance",
+        )
+        return price
+
+    def get_price_from_info(
+        self, ticker: yf.Ticker, security_symbol: SecuritySymbol
+    ) -> Price:
+        """
+        Get price from info
+        """
+        # Get the last date and the last price
+        # date = ticker.info.get("lastTradeDate")
+        ts = ticker.info.get("regularMarketTime")
+        dt = datetime.fromtimestamp(ts)
+        # gmt_offset = ticker.info.get("gmtOffSetMilliseconds")
+
+        value = ticker.info.get("regularMarketPrice")
+        currency = ticker.info.get("currency")
+
+        price = Price(
+            symbol=security_symbol,
+            date=dt.date(),
+            time=dt.time(),
+            value=value,
+            currency=currency,
+            source="yfinance",
+        )
         return price

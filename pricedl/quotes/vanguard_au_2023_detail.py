@@ -12,9 +12,8 @@ https://www.vanguard.com.au/personal/api/products/personal/fund/8105/prices?limi
 """
 
 import json
-from dataclasses import dataclass, field
 from datetime import datetime
-from decimal import Decimal, getcontext
+from decimal import Decimal
 from typing import Dict, Tuple
 
 import aiohttp

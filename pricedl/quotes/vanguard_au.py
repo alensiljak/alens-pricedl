@@ -8,7 +8,7 @@ import logging
 from dataclasses import dataclass, field
 from datetime import datetime
 from decimal import Decimal, InvalidOperation
-from typing import Dict, Any, Optional, Tuple
+from typing import Dict, Any, Optional
 
 import aiohttp
 
@@ -40,7 +40,7 @@ class Price:
     date: Optional[str] = None  # YYYY-MM-DD
     value: int = 0  # Price * 10^scale (mantissa)
     denom: int = 1  # 10^scale
-    currency: Optional[str] = None
+    currency: str | None = None
 
     def __repr__(self) -> str:
         return (

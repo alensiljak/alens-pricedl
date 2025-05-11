@@ -1,7 +1,9 @@
+'''
+Model classes for the pricedl package.
+'''
 from dataclasses import dataclass
 from datetime import date, time as dt_time
-from typing import Optional, List
-from decimal import Decimal, InvalidOperation
+from decimal import Decimal
 
 
 @dataclass
@@ -84,18 +86,18 @@ class SymbolMetadata:
     Symbol row in the symbols.csv file.
     '''
     # Exchange
-    namespace: Optional[str]
+    namespace: str | None
     # Symbol at the exchange
     symbol: str
     # The currency used to express the symbol's price.
-    currency: Optional[str]
+    currency: str | None
     # The name of the price update provider.
-    updater: Optional[str]
+    updater: str | None
     # The symbol, as used by the updater.
-    updater_symbol: Optional[str]
+    updater_symbol: str | None
     # The symbol, as used in the Ledger journal.
-    ledger_symbol: Optional[str]
+    ledger_symbol: str | None
     # The symbol, as used at Interactive Brokers.
-    ib_symbol: Optional[str]
+    ib_symbol: str | None
     # Remarks
-    remarks: Optional[str]
+    remarks: str | None

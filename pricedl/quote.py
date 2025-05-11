@@ -8,7 +8,7 @@ Python library.
 
 import logging
 from abc import ABC, abstractmethod
-from typing import List, Optional, Dict, Any
+from typing import List, Optional
 
 from loguru import logger
 
@@ -31,8 +31,8 @@ class Quote:
     """
 
     def __init__(self):
-        self.symbol: Optional[str] = None
-        self.exchange: Optional[str] = None
+        self.symbol: str | None = None
+        self.exchange: str | None = None
         self.source: Optional[str] = None
         self.currency: Optional[str] = None
 
