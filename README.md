@@ -1,4 +1,4 @@
-# pricedb-python
+# as-price-download
 Price-database utility converted to Python
 
 This is a rewrite of Pricedb-Rust utility. Pricedb-Rust originally came from Price-Database, which was in Python and was storing the prices in a SQLite database.
@@ -7,7 +7,7 @@ In this project, the idea remains to fetch the prices, sort them by time, and ou
 
 # Install
 ```sh
-uv tool install pricedb-python
+uv tool install as-price-download
 ```
 
 # Run
@@ -15,7 +15,6 @@ Example configuration file (.config/pricedb/pricedb.toml):
 ```
 price_database_path = ":memory:"
 alphavantage_api_key = ""
-fixerio_api_key = "<KEY>"
 prices_path = "/home/prices.txt"
 symbols_path = "/home/symbols.csv"
 ```
