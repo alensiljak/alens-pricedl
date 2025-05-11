@@ -19,36 +19,8 @@ from typing import Dict, Tuple
 
 import aiohttp
 
+from pricedl.model import Price, SecuritySymbol
 from pricedl.quote import Downloader
-
-# Set precision for Decimal, if needed, though for simple storage and retrieval it might not be strictly necessary
-# getcontext().prec = 28 # Default is 28, usually sufficient
-
-
-@dataclass
-class SecuritySymbol:
-    """A security symbol"""
-
-    namespace: str
-    symbol: str
-
-    def __init__(self, full_symbol: str):
-        if ":" not in full_symbol:
-            raise ValueError("Symbol must be in 'NAMESPACE:SYMBOL' format")
-        self.namespace, self.symbol = full_symbol.split(":", 1)
-
-    def __str__(self) -> str:
-        return f"{self.namespace}:{self.symbol}"
-
-
-@dataclass
-class Price:
-    """The price for a commodity"""
-
-    date: str = ""
-    value: int = 0  # Mantissa
-    denom: int = 1  # Denominator (e.g., 100 for 2 decimal places, 1000 for 3)
-    currency: str = ""
 
 
 class VanguardAu3Downloader(Downloader):
@@ -102,48 +74,6 @@ class VanguardAu3Downloader(Downloader):
 
         return date_str, price_str, currency_str
 
-    def _parse_price(self, date_str: str, price_str: str, currency_str: str) -> Price:
-        p = Price()
-
-        # Parse date
-        dt_obj = datetime.strptime(date_str, "%Y-%m-%d")
-        p.date = dt_obj.strftime("%Y-%m-%d")
-
-        # Parse decimal value
-        value_decimal = Decimal(price_str)
-
-        # Deconstruct Decimal into mantissa and exponent for storage
-        # sign, digits, exponent = value_decimal.as_tuple()
-        # if sign: # Handle negative numbers if necessary, though prices are usually positive
-        #     p.value = -int("".join(map(str, digits)))
-        # else:
-        #     p.value = int("".join(map(str, digits)))
-
-        # A more direct way to get mantissa for positive numbers
-        # If price can be "123.45", scale is 2, exponent is -2
-        # Mantissa is 12345
-        # Denom is 10^2 = 100
-
-        # value_decimal.scaleb(abs(value_decimal.as_tuple().exponent)) gives the integer part
-        # For "1.234", as_tuple() -> (0, (1,2,3,4), -3)
-        # Mantissa is 1234. Denom is 10^3 = 1000
-
-        sign, digits, exponent = value_decimal.as_tuple()
-
-        num_str = "".join(map(str, digits))
-        p.value = int(num_str)
-        if sign:
-            p.value = -p.value
-
-        if exponent < 0:
-            p.denom = 10 ** abs(exponent)
-        else:  # if exponent is 0 or positive (e.g. Decimal('123E+2'))
-            p.value *= 10**exponent
-            p.denom = 1
-
-        p.currency = currency_str
-
-        return p
 
     # todo: revisit this
     async def download(self, security_symbol: SecuritySymbol, currency: str) -> Price:
@@ -157,5 +87,11 @@ class VanguardAu3Downloader(Downloader):
         # Optionally, you could validate currency_api against the input `currency` if required.
         # For now, we use the currency from the API.
 
-    #     price_obj = self._parse_price(date_str, price_str, currency_api)
-    #     return price_obj
+        # Parse date
+        price_date = datetime.strptime(date_str, "%Y-%m-%d")
+
+        p = Price(symbol=SecuritySymbol('', ''),
+                  date=price_date,
+                  value=Decimal(price_str),
+                  currency=currency_api)
+        return p

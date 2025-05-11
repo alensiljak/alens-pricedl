@@ -38,3 +38,11 @@ async def test_aussie_stock():
     '''
     sec_filter = SecurityFilter(None, None, 'ASX', 'VHY')
     await dl_quote(sec_filter)
+
+@pytest.mark.asyncio
+async def test_vanguard():
+    '''
+    VANGUARD:HY
+    '''
+    sec_filter = SecurityFilter(None, None, 'VANGUARD', 'HY')
+    await dl_quote(sec_filter)

@@ -3,18 +3,17 @@ Maintains the prices in a flat-file in Ledger format.
 P 2023-04-14 00:00:00 GBP 1.132283 EUR
 """
 
-from datetime import datetime, time as dt_time
+from datetime import date, datetime, time as dt_time
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
 from typing import Dict, List
 
 from pricedl.model import Price
 
-# --- Constants ---
+
 DATE_TIME_FORMAT: str = "%Y-%m-%d %H:%M:%S"
 
 
-# --- Core Logic ---
 class PriceRecord:
     """A row in the prices file"""
 
@@ -47,23 +46,28 @@ class PriceRecord:
 
     @classmethod
     def from_price_model(cls, item: Price) -> "PriceRecord":
-        '''
-        Creates a PriceRecord from a PriceModelPython instance.
-        '''
-        time_str = "00:00:00" if not item.time else item.time
-        date_time_str = f"{item.date} {time_str}"
+        """
+        Creates a PriceRecord from a Price instance.
+        """
+        if not isinstance(item.date, date):
+            raise ValueError(f"Expected date to be a date, but got {type(item.date)}")
 
-        try:
-            dt_val = datetime.strptime(date_time_str, DATE_TIME_FORMAT)
-        except ValueError as e:
-            raise ValueError(
-                f"Failed to parse date/time string: '{date_time_str}' from PriceModel - {e}"
-            ) from e
+        # time_str = "00:00:00" if not item.time else item.time
+        t = dt_time(0, 0) if not item.time else item.time
+        # date_time_str = f"{item.date} {time_str}"
+        dt = datetime.combine(item.date, t)
+
+        # try:
+        #     dt_val = datetime.strptime(date_time_str, DATE_TIME_FORMAT)
+        # except ValueError as e:
+        #     raise ValueError(
+        #         f"Failed to parse date/time string: '{date_time_str}' from PriceModel - {e}"
+        #     ) from e
 
         return cls(
-            datetime_val=dt_val,
+            datetime_val=dt,
             symbol=str(item.symbol),
-            value=item.to_decimal(),
+            value=item.value,
             currency=item.currency,
         )
 

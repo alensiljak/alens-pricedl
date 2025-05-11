@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import date, time as dt_time
 from typing import Optional, List
 from decimal import Decimal, InvalidOperation
 
@@ -43,22 +43,21 @@ class Price:
     The downloaded price for a security
     '''
     symbol: SecuritySymbol
-    date: datetime
-    time: Optional[datetime] = None
-    value: float = 0.0
+    date: date
+    time: dt_time | None = None
+    value: Decimal = Decimal(0)
     currency: str = ''
     # value_int_part: int # The integer part of the value (mantissa)
     # denom_as_scale: int # The scale (number of decimal places)
-    # arguments with defaults must come at the end.
     source: str = ''
 
-    def to_decimal(self) -> Decimal:
-        '''
-        Converts the raw integer value and scale into a Decimal.
-        This mimics rust_decimal::Decimal::new(value, scale).
-        '''
-        result = Decimal(str(self.value))
-        return result
+    # def to_decimal(self) -> Decimal:
+    #     '''
+    #     Converts the raw integer value and scale into a Decimal.
+    #     This mimics rust_decimal::Decimal::new(value, scale).
+    #     '''
+    #     result = Decimal(str(self.value))
+    #     return result
 
     # def to_decimal(self) -> Decimal:
     #     """

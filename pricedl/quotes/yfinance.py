@@ -57,7 +57,7 @@ class YfinanceDownloader(Downloader):
         # Get the last date and the last price
         timestamp = hist.index[-1]
         dt = timestamp.date()
-        date: str = dt.isoformat()
+        #date: str = dt.isoformat()
 
         value = hist['Close'].iloc[-1]
 
@@ -65,6 +65,6 @@ class YfinanceDownloader(Downloader):
         # value = ticker.fast_info.get("lastPrice")
         currency = ticker.fast_info.get("currency")
 
-        price = Price(symbol=security_symbol, date=date, time=None,
+        price = Price(symbol=security_symbol, date=dt, time=None,
                       value=value, currency=currency, source="yfinance")
         return price
