@@ -15,11 +15,11 @@ Example configuration file (.config/pricedb/pricedb.toml):
 ```
 price_database_path = ":memory:"
 alphavantage_api_key = ""
-fixerio_api_key = ""
+fixerio_api_key = "<KEY>"
 prices_path = "/home/prices.txt"
 symbols_path = "/home/symbols.csv"
 ```
 # Development
 ```sh
-uv run python main.py dl
+uv run python main.py [dl]
 ```
