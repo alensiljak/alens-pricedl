@@ -19,6 +19,8 @@ fixerio_api_key = "<KEY>"
 prices_path = "/home/prices.txt"
 symbols_path = "/home/symbols.csv"
 ```
+
+
 # Development
 ```sh
 uv run python main.py [dl]

@@ -9,6 +9,24 @@ from pricedl.quotes.ecb import EcbDownloader
 
 
 @pytest.mark.asyncio
+async def test_aud_dl():
+    '''
+    Test downloading AUD exchange rate.
+    There was an exception.
+    '''
+    currency = 'AUD'
+    dl = EcbDownloader()
+    symbol = SecuritySymbol("CURRENCY", currency)
+    result = await dl.download(symbol, "EUR")
+
+    assert result is not None
+    assert result.value > 0
+    assert result.value < 3
+    assert result.currency == "EUR"
+    assert result.symbol.mnemonic == currency
+    assert result.symbol.namespace == "CURRENCY"
+
+@pytest.mark.asyncio
 async def test_dl():
     """
     test download
@@ -18,7 +36,8 @@ async def test_dl():
     result = await dl.download(symbol, "EUR")
 
     assert result is not None
-    # assert result.value == 1.1626
+    assert result.value > 0
+    assert result.value < 3
     assert result.currency == "EUR"
     assert result.symbol.mnemonic == "GBP"
     assert result.symbol.namespace == "CURRENCY"

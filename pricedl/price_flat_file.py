@@ -56,7 +56,6 @@ class PriceRecord:
         try:
             dt_val = datetime.strptime(date_time_str, DATE_TIME_FORMAT)
         except ValueError as e:
-            # Corresponds to .expect("parsed date/time")
             raise ValueError(
                 f"Failed to parse date/time string: '{date_time_str}' from PriceModel - {e}"
             ) from e

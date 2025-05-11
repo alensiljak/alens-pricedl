@@ -84,10 +84,10 @@ async def dl_quote(security_filter: SecurityFilter):
         price = await download_price(symbol, currency=sec.currency, agent=sec.updater)
         logger.debug(f"Price: {price}")
 
-        # Convert the price to ledger format
+        # Convert the price to ledger format record.
         price_record = PriceRecord.from_price_model(price)
         # Use ledger symbol.
-        price_record.symbol = sec.symbol
+        price_record.symbol = sec.ledger_symbol or sec.symbol
 
         # Appent to the price file. The symbol is used as the key.
         prices_file.prices[price_record.symbol] = price_record

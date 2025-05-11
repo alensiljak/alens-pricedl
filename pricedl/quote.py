@@ -9,6 +9,7 @@ import logging
 from abc import ABC, abstractmethod
 from typing import List, Optional, Dict, Any
 
+
 from .model import Price, SecuritySymbol
 
 
@@ -72,11 +73,6 @@ class Quote:
 
     def get_downloader(self) -> Downloader:
         """Get the appropriate downloader based on the source."""
-        from .quotes.fixerio import Fixerio
-        from .quotes.yfinance import YfinanceDownloader
-        from .quotes.vanguard_au_2023_detail import VanguardAu3Downloader
-        # from .quotes.yahoo_finance_downloader import YahooFinanceDownloader
-
         source = self.source.lower() if self.source else None
 
         if source == "yahoo_finance":
@@ -85,12 +81,19 @@ class Quote:
             raise NotImplementedError("not implemented")
         elif source == "yfinance":
             logging.debug("using yfinance")
+            from .quotes.yfinance import YfinanceDownloader
             return YfinanceDownloader()
+        elif source == "ecb":
+            logging.debug("using ecb")
+            from .quotes.ecb import EcbDownloader
+            return EcbDownloader()
         elif source == "fixerio":
             logging.debug("using fixerio")
+            from .quotes.fixerio import Fixerio
             return Fixerio()
         elif source == "vanguard_au":
             logging.debug("using vanguard")
+            from .quotes.vanguard_au_2023_detail import VanguardAu3Downloader
             return VanguardAu3Downloader()
         else:
             raise ValueError(f"unknown downloader: {source}")

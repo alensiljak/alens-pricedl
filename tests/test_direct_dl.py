@@ -7,8 +7,6 @@ from pricedl.direct_dl import dl_quote
 from pricedl.model import SecurityFilter
 
 
-
-# @pytest.mark.anyio
 @pytest.mark.asyncio
 async def test_xetra_dl():
     '''
@@ -23,4 +21,20 @@ async def test_nasdaq_dl():
     OPI
     '''
     sec_filter = SecurityFilter(None, None, None, 'OPI')
+    await dl_quote(sec_filter)
+
+@pytest.mark.asyncio
+async def test_aud_rate():
+    '''
+    CURRENCY:AUD
+    '''
+    sec_filter = SecurityFilter(None, None, 'CURRENCY', 'AUD')
+    await dl_quote(sec_filter)
+
+@pytest.mark.asyncio
+async def test_aussie_stock():
+    '''
+    ASX:VHY
+    '''
+    sec_filter = SecurityFilter(None, None, 'ASX', 'VHY')
     await dl_quote(sec_filter)

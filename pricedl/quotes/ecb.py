@@ -47,9 +47,12 @@ class EcbDownloader(Downloader):
         # rate = df.at['2025-05-10', 'USD']
         rate = df.iloc[0][symbol]
 
-        date = df.index[0]
+        # pd.Timestamp
+        timestamp = df.index[0]
+        date = timestamp.date()
 
-        return Price(symbol=security_symbol, date=date, value=rate, currency=currency)
+        return Price(symbol=security_symbol, date=date, value=rate, currency=currency,
+                     source="ECB")
 
     def daily_cache_exists(self):
         """
@@ -64,15 +67,23 @@ class EcbDownloader(Downloader):
         """
         temp_dir = tempfile.gettempdir()
         filename = datetime.date.today().isoformat()
-        return os.path.join(temp_dir, f"{filename}.csv")
+        # Change extension to change the format.
+        extension = "csv"
+        return os.path.join(temp_dir, f"{filename}.{extension}")
 
     def write_daily_cache(self, df: pd.DataFrame):
         """
         Caches the daily rates.
         """
         cache_path = self.get_cache_path()
-        with open(cache_path, "w", encoding="utf-8") as f:
-            f.write(df.to_csv())  # Includes headers and index
+
+        # support different formats
+        if cache_path.endswith(".csv"):
+            df.to_csv(cache_path, index=True)
+        elif cache_path.endswith(".feather"):
+            df.to_feather(cache_path)
+        else:
+            raise ValueError(f"Unsupported file format: {cache_path}")
 
     def read_daily_cache(self) -> pd.DataFrame:
         """
@@ -81,6 +92,12 @@ class EcbDownloader(Downloader):
         logger.debug("Reading cached daily rates")
 
         cache_path = self.get_cache_path()
-        with open(cache_path, "r", encoding="utf-8") as f:
-            df = pd.read_csv(f)
+
+        # support different formats
+        if cache_path.endswith(".csv"):
+            df = pd.read_csv(cache_path, index_col=0, parse_dates=True)
+        elif cache_path.endswith(".feather"):
+            df = pd.read_feather(cache_path)
+        else:
+            raise ValueError(f"Unsupported file format: {cache_path}")
         return df
