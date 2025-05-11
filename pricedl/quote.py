@@ -13,6 +13,7 @@ from .model import Price, SecuritySymbol
 
 
 class Downloader(ABC):
+    '''Base class for all the downloaders.'''
     @abstractmethod
     async def download(self, security_symbol: SecuritySymbol, currency: str) -> Price:
         """Download price for the given security symbol and currency."""
@@ -20,6 +21,9 @@ class Downloader(ABC):
 
 
 class Quote:
+    '''
+    The price downloading facade.
+    '''
     def __init__(self):
         self.symbol: Optional[str] = None
         self.exchange: Optional[str] = None
@@ -58,26 +62,33 @@ class Quote:
 
         try:
             price = await downloader.download(security_symbol, currency)
+
             # Set the symbol here.
-            price.symbol = str(security_symbol)
+            price.symbol = security_symbol
             return price
         except Exception as error:
             raise Exception(f"Error downloading price: {error}")
 
     def get_downloader(self) -> Downloader:
         """Get the appropriate downloader based on the source."""
-        from .quotes.fixerio import Fixerio
+        # from .quotes.fixerio import Fixerio
+        from pricedl.quotes.yfinance import YfinanceDownloader
         from .quotes.vanguard_au_2023_detail import VanguardAu3Downloader
-        from .quotes.yahoo_finance_downloader import YahooFinanceDownloader
+        # from .quotes.yahoo_finance_downloader import YahooFinanceDownloader
 
         source = self.source.lower() if self.source else None
 
         if source == "yahoo_finance":
             logging.debug("using yahoo finance")
-            return YahooFinanceDownloader()
+            # return YahooFinanceDownloader()
+            raise NotImplementedError("not implemented")
+        elif source == "yfinance":
+            logging.debug("using yfinance")
+            return YfinanceDownloader()
         elif source == "fixerio":
             logging.debug("using fixerio")
-            return Fixerio()
+            # return Fixerio()
+            raise NotImplementedError("not implemented")
         elif source == "vanguard_au":
             logging.debug("using vanguard")
             return VanguardAu3Downloader()

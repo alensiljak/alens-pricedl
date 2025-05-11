@@ -4,8 +4,9 @@ Main entry point for the script executable.
 import importlib.metadata
 
 # import asyncio
-import click
+import asyncclick as click
 from loguru import logger
+import dotenv
 # import os
 # from datetime import datetime
 # from typing import List, Optional
@@ -17,6 +18,8 @@ from pricedl.model import SecurityFilter
 # from pricedl.model import SecuritySymbol
 # from pricedl.price_flat_file import PriceFlatFile, PriceRecord
 # from pricedl.quotes import get_quote
+
+dotenv.load_dotenv()
 
 
 @click.group()
@@ -64,15 +67,15 @@ def config_show():
 @click.option("--currency", "-c", default=None, help="Currency for the price")
 @click.option("--agent", "-a", default=None, help="Agent for the price")
 @click.option("--file", "-f", default=None, help="Path to CSV file with symbols")
-def download(exchange, symbol, currency, agent, file):
+async def download(exchange, symbol, currency, agent, file):
     '''Download prices for symbols.'''
     if currency:
         currency = currency.strip()
         currency = currency.upper()
 
-    filter = SecurityFilter(currency, agent, exchange, symbol)
-    logger.debug(f"Filter: {filter}")
-    pricedl.direct_dl.dl_quote(filter)
+    sec_filter = SecurityFilter(currency, agent, exchange, symbol)
+    logger.debug(f"Filter: {sec_filter}")
+    await pricedl.direct_dl.dl_quote(sec_filter)
 
 
 def get_version():

@@ -3,19 +3,32 @@ The price downloader that downloads the prices directly into the list.
 """
 
 from pathlib import Path
-from typing import Tuple
+from typing import List, Optional, Tuple
 import csv
 from loguru import logger
 from pricedl.config import PriceDbConfig
-from .model import SecurityFilter, SymbolMetadata
+from pricedl.quote import Quote
+from .model import Price, SecurityFilter, SecuritySymbol, SymbolMetadata
 
 
-def get_securities(symbols_path: Path, filter: SecurityFilter):
+def get_securities(
+    symbols_path: Path, security_filter: SecurityFilter
+) -> List[SymbolMetadata]:
     """
     Load symbols list, applying the filters.
     """
     symbols_list = load_symbols(symbols_path)
     logger.debug(f"Loaded {len(symbols_list)} symbols from {symbols_path}")
+
+    # filter
+    if security_filter is None:
+        return symbols_list
+    else:
+        symbols_list = filter_securities(symbols_list, security_filter)
+
+    logger.debug(f"Filtered to {len(symbols_list)} symbols")
+
+    return symbols_list
 
 
 def get_paths() -> Tuple[Path, Path]:
@@ -40,7 +53,7 @@ def get_paths() -> Tuple[Path, Path]:
     return symbols_path, prices_path
 
 
-def dl_quote(security_filter: SecurityFilter):
+async def dl_quote(security_filter: SecurityFilter):
     """
     Download directly into the price file in ledger format.
     Maintains the latest prices in the price file by updating the prices for
@@ -53,18 +66,88 @@ def dl_quote(security_filter: SecurityFilter):
     # load the symbols table for mapping
     securities = get_securities(symbols_path, security_filter)
 
+    # todo: load prices file
+    # todo progress bar
+
+    for sec in securities:
+        logger.debug(f"Processing symbol: {sec.symbol}, {sec.updater_symbol}")
+        # Use the Updater Symbol, if specified. This is provider-specific.
+        mnemonic = sec.updater_symbol if sec.updater_symbol else sec.symbol
+        symbol = SecuritySymbol(sec.namespace or "", mnemonic)
+        logger.debug(f"Fetching price for symbol {symbol}")
+        # todo show progress
+
+        price = await download_price(symbol, currency=sec.currency, agent=sec.updater)
+        logger.debug(f"Price: {price}")
+
+        # Convert the price to ledger format
+
+        # Appent to the price file
+
+        # Save the price file.
+
+
+def filter_securities(securities_list, filter_val):
+    """Filter securities based on the provided filter criteria"""
+    result = []
+
+    for sym in securities_list:
+        # Filter by agent/updater
+        if filter_val.agent is not None:
+            if sym.updater is None or sym.updater != filter_val.agent:
+                continue
+
+        # Filter by currency
+        if filter_val.currency is not None:
+            if sym.currency is None or sym.currency != filter_val.currency.upper():
+                continue
+
+        # Filter by exchange/namespace
+        if filter_val.exchange is not None:
+            if sym.namespace is None or sym.namespace != filter_val.exchange.upper():
+                continue
+
+        # Filter by symbol
+        if filter_val.symbol is not None:
+            if sym.symbol != filter_val.symbol.upper():
+                continue
+
+        # If it passed all filters, add to result
+        result.append(sym)
+
+    return result
+
 
 def load_symbols(symbols_path: Path):
     """
     Loads the symbols from the symbols file.
     """
-    # symbols_list = []
-
     with open(symbols_path, "r", newline="", encoding="utf-8") as csvfile:
         reader = csv.DictReader(csvfile)
         symbols_list = [SymbolMetadata(**row) for row in reader]
-        # for row in reader:
-        #     symbols_list.append(row)
 
     logger.debug(f"Loaded {len(symbols_list)} symbols from {symbols_path}")
     return symbols_list
+
+
+async def download_price(
+    symbol: SecuritySymbol, currency: Optional[str], agent: Optional[str]
+) -> Price:
+    """
+    Download the price for the given symbol.
+    """
+    dl = Quote()
+    if agent:
+        dl.set_source(agent)
+    if currency:
+        dl.set_currency(currency)
+
+    prices = await dl.fetch(symbol.namespace, [symbol.mnemonic])
+
+    # price = dl.download(symbol, currency, agent)
+    if prices is None:
+        raise LookupError(f"No price downloaded for {symbol}")
+    # if prices == 0:
+    #     raise LookupError(f"No price found for {symbol}")
+
+    return prices[0]
