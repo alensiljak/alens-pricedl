@@ -26,6 +26,8 @@ class EcbDownloader(Downloader):
         Download the price for the given symbol.
         '''
         currency = currency.upper()
+        if not currency == 'EUR':
+            raise ValueError("Only EUR is supported")
         symbol = security_symbol.mnemonic.upper()
         logger.debug(f"Downloading price for {symbol} in {currency}")
 
@@ -49,16 +51,19 @@ class EcbDownloader(Downloader):
         df = daily_df
         # rate = df.at['2025-05-10', 'USD']
         rate = df.iloc[0][symbol]
-        # Rates are inverse.
+        # The rates inverted. They are for 1 Euro (EUR/AUD).
         inv_rate = Decimal(1 / rate)
         inv_rate = inv_rate.quantize(Decimal('0.0001'), rounding=ROUND_HALF_UP)
 
-        # pd.Timestamp
+        # date
         timestamp = df.index[0]
-        # logger.debug(f"timestamp: {timestamp}")
-        date = timestamp.date()
-
-        # The rates inverted. They are for 1 Euro (EUR/AUD).
+        if isinstance(timestamp, str):
+            date = datetime.datetime.strptime(timestamp, '%Y-%m-%d').date()
+        elif isinstance(timestamp, pd.Timestamp):
+            date = timestamp.date()
+        else:
+            logger.debug(f"timestamp: {timestamp}, {type(timestamp).__name__}")
+            raise ValueError("Unsupported timestamp type")
 
         return Price(symbol=security_symbol,
                      date=date, value=inv_rate,
@@ -99,9 +104,9 @@ class EcbDownloader(Downloader):
         '''
         Reads the cached daily rates.
         '''
-        logger.debug("Reading cached daily rates")
-
         cache_path = self.get_cache_path()
+
+        logger.debug(f"Reading cached daily rates from {cache_path}")
 
         # support different formats
         if cache_path.endswith(".csv"):
