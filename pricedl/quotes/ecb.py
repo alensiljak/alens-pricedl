@@ -1,36 +1,38 @@
-"""
+'''
 Price downloader for ECB data (currencies).
-"""
+'''
 
 import datetime
 from decimal import ROUND_HALF_UP, Decimal
 import os
+from pathlib import Path
 import tempfile
 import eurofx
 
 from loguru import logger
 import pandas as pd
 
-from pricedl.model import Price, SecuritySymbol
+from pricedl.model import Price
 from pricedl.quote import Downloader
 
 
 class EcbDownloader(Downloader):
-    """
+    '''
     Downloader for ECB data (currencies).
-    """
+    '''
 
     async def download(self, security_symbol, currency):
-        """
+        '''
         Download the price for the given symbol.
-        """
+        '''
         currency = currency.upper()
         symbol = security_symbol.mnemonic.upper()
         logger.debug(f"Downloading price for {symbol} in {currency}")
 
         # Check if we have cached daily rates file.
         if self.daily_cache_exists():
-            logger.debug("Using cached daily rates")
+            cache_date = Path(self.get_cache_path()).name.split(".")[0]
+            logger.debug(f"Using cached daily rates: {cache_date}")
             daily_df = self.read_daily_cache()
         else:
             daily_df = eurofx.get_daily_data_df()
@@ -63,16 +65,16 @@ class EcbDownloader(Downloader):
                      currency=currency, source="ECB")
 
     def daily_cache_exists(self):
-        """
+        '''
         Checks if the daily rates file exists.
-        """
+        '''
         cache_path = self.get_cache_path()
         return os.path.exists(cache_path)
 
     def get_cache_path(self):
-        """
+        '''
         Returns the path to the cache file.
-        """
+        '''
         temp_dir = tempfile.gettempdir()
         filename = datetime.date.today().isoformat()
         # Change extension to change the format.
@@ -80,9 +82,9 @@ class EcbDownloader(Downloader):
         return os.path.join(temp_dir, f"{filename}.{extension}")
 
     def write_daily_cache(self, df: pd.DataFrame):
-        """
+        '''
         Caches the daily rates.
-        """
+        '''
         cache_path = self.get_cache_path()
 
         # support different formats
@@ -94,9 +96,9 @@ class EcbDownloader(Downloader):
             raise ValueError(f"Unsupported file format: {cache_path}")
 
     def read_daily_cache(self) -> pd.DataFrame:
-        """
+        '''
         Reads the cached daily rates.
-        """
+        '''
         logger.debug("Reading cached daily rates")
 
         cache_path = self.get_cache_path()

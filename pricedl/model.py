@@ -54,7 +54,7 @@ class Price:
     source: str = ''
 
     def __str__(self):
-        return f"{self.symbol}: {self.value} {self.currency} ({self.source})"
+        return f"{self.symbol}: {self.value} {self.currency} as of {self.date} ({self.source})"
 
     # def to_decimal(self) -> Decimal:
     #     '''
