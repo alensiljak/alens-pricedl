@@ -100,8 +100,8 @@ def test_parse_price():
 async def main():
     """manual test"""
     downloader = VanguardAu3Downloader()
-    hy_symbol = SecuritySymbol("VANGUARD:HY")
-    prop_symbol = SecuritySymbol("VANGUARD:PROP")
+    hy_symbol = SecuritySymbol("VANGUARD", "HY")
+    prop_symbol = SecuritySymbol("VANGUARD", "PROP")
 
     try:
         print(f"Fetching price for {hy_symbol}...")

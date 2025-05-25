@@ -7,6 +7,7 @@ requires-python = ">=3.12"
 dependencies = [
     "aiohttp>=3.11.18",
     "asyncclick>=8.1.8",
+    "beanprice>=2.0.0",
     "dotenv>=0.9.9",
     "loguru>=0.7.3",
     "pyeurofx>=0.6.4",
@@ -42,5 +43,8 @@ build-backend = "hatchling.build"
 # ]
 # Include subfolder pricedb in the distribution package.
 packages = ["pricedl"]
+
+[tool.uv.sources]
+beanprice = { git = "https://github.com/beancount/beanprice" }
 
 #tool.uv.package = true
