@@ -20,7 +20,7 @@ class Downloader(ABC):
     """Base class for all the downloaders."""
 
     @abstractmethod
-    async def download(self, security_symbol: SecuritySymbol, currency: str) -> Price:
+    def download(self, security_symbol: SecuritySymbol, currency: str) -> Price:
         """Download price for the given security symbol and currency."""
         pass
 

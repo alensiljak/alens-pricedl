@@ -28,7 +28,7 @@ class Source(source.Source):
             symbol = ticker
 
             sec_symbol = SecuritySymbol("VANGUARD", symbol)
-            v_price = asyncio.run(VanguardAu3Downloader().download(sec_symbol, ""))
+            v_price = VanguardAu3Downloader().download(sec_symbol, "")
 
             price = v_price.value
 

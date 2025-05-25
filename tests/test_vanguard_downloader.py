@@ -9,7 +9,6 @@ import pytest
 from pricedl.quotes.vanguard_au_2023_detail import (
     VanguardAu3Downloader,
     SecuritySymbol,
-    Price,
 )  # Assuming the main code is in vanguard_au_2023_detail.py
 
 
@@ -22,8 +21,7 @@ def test_url_generation():
     assert actual == expected
 
 
-@pytest.mark.asyncio
-async def test_hy_price_dl():
+def test_hy_price_dl():
     """test downloading the price for HY"""
     dl = VanguardAu3Downloader()
     symbol = SecuritySymbol("VANGUARD", "HY")
@@ -31,7 +29,7 @@ async def test_hy_price_dl():
     # This test makes a live network request.
     # In a real test suite, you might want to mock this.
     try:
-        actual_price = await dl.download(symbol, "AUD")
+        actual_price = dl.download(symbol, "AUD")
     except Exception as e:
         pytest.fail(f"Download failed: {e}")
 
@@ -50,13 +48,12 @@ async def test_hy_price_dl():
     print(f"Downloaded Price for {symbol}: {actual_price}")
 
 
-@pytest.mark.asyncio
-async def test_prop_price_dl():
+def test_prop_price_dl():
     """test downloading the price for PROP"""
     dl = VanguardAu3Downloader()
     symbol = SecuritySymbol("VANGUARD", "PROP")
     try:
-        actual_price = await dl.download(symbol, "AUD")
+        actual_price = dl.download(symbol, "AUD")
     except Exception as e:
         pytest.fail(f"Download failed: {e}")
 

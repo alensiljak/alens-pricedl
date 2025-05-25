@@ -16,7 +16,7 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Dict, Tuple
 
-import aiohttp
+import requests
 
 from pricedl.model import Price, SecuritySymbol
 from pricedl.quote import Downloader
@@ -44,17 +44,16 @@ class VanguardAu3Downloader(Downloader):
         # print(f"DEBUG: url: {result}") # Corresponds to log::debug!
         return result
 
-    async def _dl_price(self, symbol: SecuritySymbol) -> Tuple[str, str, str]:
+    def _dl_price(self, symbol: SecuritySymbol) -> Tuple[str, str, str]:
         """
         Returns the latest retail fund price.
         (date_str, price_str, currency_str)
         """
         url = self.get_url(symbol)
 
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url) as response:
-                response.raise_for_status()  # Raises an HTTPError for bad responses (4xx or 5xx)
-                content = await response.text()
+        response = requests.get(url, timeout=30)
+        response.raise_for_status()  # Raises an HTTPError for bad responses (4xx or 5xx)
+        content = response.content
 
         content_json = json.loads(content)
         data = content_json["data"][0]
@@ -73,13 +72,13 @@ class VanguardAu3Downloader(Downloader):
 
         return date_str, price_str, currency_str
 
-    async def download(self, security_symbol: SecuritySymbol, currency: str) -> Price:
+    def download(self, security_symbol: SecuritySymbol, currency: str) -> Price:
         # The `currency` parameter is not used, as the API returns the currency.
         # We'll keep it for interface consistency.
         if security_symbol.namespace.upper() != "VANGUARD":
             raise ValueError("Only Vanguard symbols are handled by this downloader!")
 
-        date_str, price_str, currency_api = await self._dl_price(security_symbol)
+        date_str, price_str, currency_api = self._dl_price(security_symbol)
 
         # Optionally, you could validate currency_api against the input `currency` if required.
         # For now, we use the currency from the API.
