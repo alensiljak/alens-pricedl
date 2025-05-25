@@ -23,6 +23,9 @@ class Source(source.Source):
     """
 
     def get_latest_price(self, ticker) -> source.SourcePrice | None:
+        '''
+        Downloads the latest price for the ticker.
+        '''
         try:
             symbol = ticker
 
@@ -44,5 +47,8 @@ class Source(source.Source):
             return None
 
     def get_historical_price(self, ticker, time):
-        # return VanguardAu3Downloader().get_historical_price(ticker, time)
-        pass
+        '''
+        Downloads the historical price for the ticker.
+        '''
+        # todo: return VanguardAu3Downloader().get_historical_price(ticker, time)
+        return None

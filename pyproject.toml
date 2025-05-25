@@ -3,7 +3,7 @@ name = "as-price-download"
 version = "0.3.2"
 description = "Commodity price retrieval, storage, and export in format compatible with Plain-Text Accounting applications."
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.11"
 dependencies = [
     "asyncclick>=8.1.8",
     "beanprice>=2.0.0",
