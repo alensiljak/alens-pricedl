@@ -3,12 +3,13 @@ Bean-price-compatible price downloader for Vanguard Australia.
 
 Use:
 
-    uv run bean-price -e "AUD:as-price-download.vanguard_au_detail/HY"
+    bean-price -e "AUD:pricedl.beanprice.vanguard_au_detail/HY"
 """
 
 import asyncio
 from datetime import datetime
 
+# type: ignore
 from beanprice import source
 from loguru import logger
 

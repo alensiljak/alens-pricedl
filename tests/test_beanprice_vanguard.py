@@ -10,7 +10,6 @@ from decimal import Decimal
 import beanprice.price
 from beanprice.price import DatedPrice, PriceSource
 
-# from pricedl import beanprice
 from pricedl.beanprice import vanguard_au_detail
 
 
