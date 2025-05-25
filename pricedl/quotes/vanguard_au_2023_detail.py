@@ -86,11 +86,17 @@ class VanguardAu3Downloader(Downloader):
         # Optionally, you could validate currency_api against the input `currency` if required.
         # For now, we use the currency from the API.
 
+        return self._parse_price(date_str, price_str, currency_api)
+
+    def _parse_price(self, date_str, price_str, currency_api) -> Price:
+        '''
+        Parse price from the price strings.
+        '''
         # Parse date
-        price_date = datetime.strptime(date_str, "%Y-%m-%d")
+        price_date = datetime.strptime(date_str, "%Y-%m-%d").date()
 
         p = Price(symbol=SecuritySymbol('', ''),
-                  date=price_date,
-                  value=Decimal(price_str),
-                  currency=currency_api)
+                    date=price_date,
+                    value=Decimal(price_str),
+                    currency=currency_api)
         return p
