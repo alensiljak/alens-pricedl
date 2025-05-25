@@ -73,11 +73,9 @@ class VanguardAu3Downloader(Downloader):
 
         return date_str, price_str, currency_str
 
-
-    # todo: revisit this
     async def download(self, security_symbol: SecuritySymbol, currency: str) -> Price:
-        # The `currency` parameter is not used in the Rust version's dl_price logic,
-        # as the API returns the currency. We'll keep it for interface consistency if needed.
+        # The `currency` parameter is not used, as the API returns the currency.
+        # We'll keep it for interface consistency.
         if security_symbol.namespace.upper() != "VANGUARD":
             raise ValueError("Only Vanguard symbols are handled by this downloader!")
 
@@ -89,14 +87,16 @@ class VanguardAu3Downloader(Downloader):
         return self._parse_price(date_str, price_str, currency_api)
 
     def _parse_price(self, date_str, price_str, currency_api) -> Price:
-        '''
+        """
         Parse price from the price strings.
-        '''
+        """
         # Parse date
         price_date = datetime.strptime(date_str, "%Y-%m-%d").date()
 
-        p = Price(symbol=SecuritySymbol('', ''),
-                    date=price_date,
-                    value=Decimal(price_str),
-                    currency=currency_api)
+        p = Price(
+            symbol=SecuritySymbol("", ""),
+            date=price_date,
+            value=Decimal(price_str),
+            currency=currency_api,
+        )
         return p

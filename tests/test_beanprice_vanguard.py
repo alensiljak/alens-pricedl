@@ -20,7 +20,7 @@ def test_dl_hy():
     """
     source = vanguard_au_detail.Source()
 
-    price = source.get_latest_price("AUD:HY")
+    price = source.get_latest_price("HY")
 
     assert price is not None
     assert price.price != Decimal(0)
@@ -31,9 +31,9 @@ def test_call_beanprice():
     """
     Test calling beanprice
     """
-    price_source = PriceSource(vanguard_au_detail, "VANGUARD:HY", False)
+    price_source = PriceSource(vanguard_au_detail, "HY", False)
     dated_price = DatedPrice(
-        base="AUD", quote="VANGUARD:HY", date=None, sources=[price_source]
+        base="AUD", quote="HY", date=None, sources=[price_source]
     )
     p = beanprice.price.fetch_price(dated_price)
 
