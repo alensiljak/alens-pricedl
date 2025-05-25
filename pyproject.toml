@@ -42,7 +42,8 @@ build-backend = "hatchling.build"
 #   "*.py",
 # ]
 # Include subfolder pricedb in the distribution package.
-packages = ["pricedl"]
+#packages = ["pricedl"]
+packages = ["src/pricedl"]
 
 [tool.uv.sources]
 beanprice = { git = "https://github.com/beancount/beanprice" }
