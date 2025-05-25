@@ -2,16 +2,15 @@
 
 import asyncio
 import json
-import logging
 import os
 import tempfile
-from dataclasses import dataclass
 from datetime import date
-from decimal import Decimal, ROUND_HALF_UP, getcontext
+from decimal import Decimal
 from pathlib import Path
 from typing import Dict, Any, Optional
+from loguru import logger
 
-import aiohttp
+import requests
 
 from pricedl.model import Price, SecuritySymbol
 from pricedl.quote import Downloader
@@ -19,25 +18,15 @@ from pricedl.quote import Downloader
 # --- Global Constants ---
 APP_NAME = "pricedb-py"  # Adapted for Python version
 
-# --- Logging Setup ---
-# Basic configuration for logging. In a real app, this would be more sophisticated.
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(name)s - %(message)s"
-)
-log = logging.getLogger(__name__)
-
-
-# --- Helper Functions ---
-
 
 def get_fixerio_api_key() -> str:
     """Loads Fixerio API key from the environment variable."""
     api_key = os.getenv("FIXERIO_API_KEY")
     if not api_key:
-        log.error("FIXERIO_API_KEY environment variable not set.")
+        logger.error("FIXERIO_API_KEY environment variable not set.")
         raise ValueError("FIXERIO_API_KEY environment variable not set.")
     if len(api_key) != 32:  # Original Rust test checks for length 32
-        log.warning(f"FIXERIO_API_KEY length is not 32. Key: '{api_key[:4]}...'")
+        logger.warning(f"FIXERIO_API_KEY length is not 32. Key: '{api_key[:4]}...'")
     return api_key
 
 
@@ -72,13 +61,13 @@ def map_rates_to_price(rates_json: Dict[str, Any], target_symbol: str) -> Price:
         base_currency = rates_json["base"].upper()
         rates_dict = rates_json["rates"]
     except KeyError as e:
-        log.error(f"Rates JSON is missing expected field: {e}. Data: {rates_json}")
+        logger.error(f"Rates JSON is missing expected field: {e}. Data: {rates_json}")
         raise ValueError(f"Invalid rates JSON structure: missing {e}") from e
 
     rate_value_for_target = rates_dict.get(target_symbol.upper())
 
     if rate_value_for_target is None:
-        log.error(
+        logger.error(
             f"Target symbol '{target_symbol.upper()}' not found in rates for base '{base_currency}'. Available: {list(rates_dict.keys())}"
         )
         raise KeyError(
@@ -88,31 +77,31 @@ def map_rates_to_price(rates_json: Dict[str, Any], target_symbol: str) -> Price:
     try:
         value_decimal = Decimal(str(rate_value_for_target))
     except Exception as e:
-        log.error(
+        logger.error(
             f"Could not convert rate '{rate_value_for_target}' to Decimal for {target_symbol}: {e}"
         )
         raise ValueError(f"Invalid rate value for {target_symbol}") from e
 
     if value_decimal.is_zero():
-        log.error(
+        logger.error(
             f"Rate for symbol '{target_symbol}' against base '{base_currency}' is zero, cannot invert."
         )
         raise ValueError("Rate is zero, cannot calculate inverse price.")
 
     inverse_rate = Decimal(1) / value_decimal
-    log.debug(f"Inverse rate for {target_symbol}/{base_currency}: {inverse_rate}")
+    logger.debug(f"Inverse rate for {target_symbol}/{base_currency}: {inverse_rate}")
 
     rounded_str_py = f"{inverse_rate:.6f}"
     final_decimal_for_price = Decimal(rounded_str_py)
 
-    log.debug(
+    logger.debug(
         f"Rounded rate for {target_symbol}/{base_currency} (6dp): {final_decimal_for_price}"
     )
 
     sign, digits_tuple, exponent_int = final_decimal_for_price.as_tuple()
 
     if sign:
-        log.error(
+        logger.error(
             f"Negative price encountered for {target_symbol}/{base_currency} after inversion and rounding."
         )
         raise ValueError("Negative price encountered, which is not expected.")
@@ -126,8 +115,11 @@ def map_rates_to_price(rates_json: Dict[str, Any], target_symbol: str) -> Price:
         if exponent_int < 0:
             val_scale = -exponent_int
     else:
-        log.error("Unexpected exponent type for Decimal %s: %s",
-            final_decimal_for_price, exponent_int)
+        logger.error(
+            "Unexpected exponent type for Decimal %s: %s",
+            final_decimal_for_price,
+            exponent_int,
+        )
         raise ValueError(f"Unexpected exponent type for Decimal: {exponent_int}")
 
     val_denom = 10**val_scale
@@ -146,19 +138,19 @@ def map_rates_to_price(rates_json: Dict[str, Any], target_symbol: str) -> Price:
 def read_rates_from_cache() -> Dict[str, Any]:
     """Reads rates JSON from today's cache file."""
     file_path = get_todays_file_path()
-    log.debug(f"Loading rates from cache file: {file_path}")
+    logger.debug(f"Loading rates from cache file: {file_path}")
     try:
         with open(file_path, "r", encoding="utf-8") as f:
             content = f.read()
         return json.loads(content)
     except FileNotFoundError:
-        log.warning(f"Cache file not found: {file_path}")
+        logger.warning(f"Cache file not found: {file_path}")
         raise
     except json.JSONDecodeError as e:
-        log.error(f"Error parsing rates JSON from {file_path}: {e}")
+        logger.error(f"Error parsing rates JSON from {file_path}: {e}")
         raise
     except IOError as e:
-        log.error(f"Error reading rates file {file_path}: {e}")
+        logger.error(f"Error reading rates file {file_path}: {e}")
         raise
 
 
@@ -173,28 +165,14 @@ class Fixerio(Downloader):
 
     def __init__(self, api_key: Optional[str] = None):
         self.api_key = api_key or get_fixerio_api_key()
-        self._session: Optional[aiohttp.ClientSession] = None
         self.base_url = "http://data.fixer.io/api/latest"
-
-    async def _get_session(self) -> aiohttp.ClientSession:
-        """Initializes and returns an aiohttp.ClientSession."""
-        if self._session is None or self._session.closed:
-            self._session = aiohttp.ClientSession()
-        return self._session
-
-    async def close(self):
-        """Closes the aiohttp session. Should be called on application shutdown."""
-        if self._session and not self._session.closed:
-            await self._session.close()
-            log.debug("Fixerio aiohttp session closed.")
-        self._session = None
 
     def _cache_rates(self, rates: Dict[str, Any]):
         """Saves the retrieved rates into a cache file."""
         try:
             file_date = rates["date"]
         except KeyError:
-            log.error("Rates JSON missing 'date' field, cannot cache.")
+            logger.error("Rates JSON missing 'date' field, cannot cache.")
             raise ValueError("Rates JSON missing 'date' field for caching.")
 
         file_path = get_rate_file_path(file_date)
@@ -203,12 +181,12 @@ class Fixerio(Downloader):
         try:
             with open(file_path, "w", encoding="utf-8") as f:
                 f.write(content)
-            log.info(f"Successfully cached rates for {file_date} to {file_path}")
+            logger.info(f"Successfully cached rates for {file_date} to {file_path}")
         except IOError as e:
-            log.error(f"Could not cache rates to {file_path}: {e}")
+            logger.error(f"Could not cache rates to {file_path}: {e}")
             raise IOError(f"Could not cache rates to {file_path}") from e
 
-    async def _download_rates_from_api(self, base_currency_api: str) -> Dict[str, Any]:
+    def _download_rates_from_api(self, base_currency_api: str) -> Dict[str, Any]:
         """
         Downloads the latest rates from Fixer.io API.
         base_currency_api: The base currency for the API request (e.g., "EUR").
@@ -217,13 +195,12 @@ class Fixerio(Downloader):
 
         url = self.base_url
 
-        log.info(f"Downloading rates from Fixer.io: URL={url}, Params={params}")
-        session = await self._get_session()
+        logger.info(f"Downloading rates from Fixer.io: URL={url}, Params={params}")
         try:
-            async with session.get(url, params=params) as response:
-                log.debug(f"Request URL: {response.url}")
-                response.raise_for_status()
-                result_json = await response.json()
+            response = requests.get(url, params=params, timeout=15)
+            logger.debug(f"Request URL: {response.url}")
+            response.raise_for_status()
+            result_json = response.json()
 
             if not result_json.get("success", False):
                 error_info = result_json.get("error", {})
@@ -231,26 +208,19 @@ class Fixerio(Downloader):
                     f"Fixer.io API error: Code {error_info.get('code')}, "
                     f"Type: {error_info.get('type')}, Info: {error_info.get('info')}"
                 )
-                log.error(err_msg)
+                logger.error(err_msg)
                 raise ValueError(err_msg)
 
-            log.debug(f"Successfully downloaded rates: {result_json}")
+            logger.debug(f"Successfully downloaded rates: {result_json}")
             return result_json
-        except aiohttp.ClientResponseError as e:
-            error_text = await e.text()
-            log.error(
-                f"HTTP error retrieving quotes from {url} with params {params}: {e.status} {e.message} - {error_text}"
-            )
-            raise ConnectionError(
-                f"HTTP error {e.status} retrieving quotes: {e.message}"
-            ) from e
-        except aiohttp.ClientError as e:
-            log.error(
-                f"Client error retrieving quotes from {url} with params {params}: {e}"
-            )
-            raise ConnectionError(f"Error retrieving quotes: {e}") from e
+        except requests.ConnectionError as e:
+            logger.error(e)
+            raise ConnectionError() from e
+        except requests.RequestException as e:
+            logger.error(e)
+            raise requests.RequestException(f"Error retrieving quotes: {e}") from e
         except json.JSONDecodeError as e:
-            log.error(f"Error decoding JSON response from {url}: {e}")
+            logger.error(f"Error decoding JSON response from {url}: {e}")
             raise ValueError(f"Error decoding JSON response: {e}") from e
 
     def _latest_rates_cached_and_valid(
@@ -262,30 +232,30 @@ class Fixerio(Downloader):
         """
         file_path = get_todays_file_path()
         if file_path.exists():
-            log.debug(f"Cache file exists for today: {file_path}")
+            logger.debug(f"Cache file exists for today: {file_path}")
             try:
                 cached_data = read_rates_from_cache()
                 cached_base = cached_data.get("base", "").upper()
                 if cached_base == requested_base_currency.upper():
-                    log.info(
+                    logger.info(
                         f"Using valid cached rates for base {requested_base_currency}."
                     )
                     return cached_data
                 else:
-                    log.warning(
+                    logger.warning(
                         f"Cached rates base '{cached_base}' does not match requested base "
                         f"'{requested_base_currency.upper()}'. Will re-download."
                     )
                     return None
             except Exception as e:
-                log.warning(
+                logger.warning(
                     f"Failed to read or validate cache file {file_path} ({e}). Will re-download."
                 )
                 return None
-        log.debug(f"Cache file for today does not exist: {file_path}")
+        logger.debug(f"Cache file for today does not exist: {file_path}")
         return None
 
-    async def download(
+    def download(
         self, security_symbol: SecuritySymbol, request_base_currency: str
     ) -> Price:
         """
@@ -300,7 +270,7 @@ class Fixerio(Downloader):
             err_msg = (
                 f"SecuritySymbol mnemonic '{target_mnemonic}' should not contain ':'."
             )
-            log.error(err_msg)
+            logger.error(err_msg)
             raise ValueError(err_msg)
 
         rates_json: Optional[Dict[str, Any]] = None
@@ -309,22 +279,22 @@ class Fixerio(Downloader):
         if cached_data:
             rates_json = cached_data
         else:
-            log.info(
+            logger.info(
                 f"No valid cache for base '{api_base_param}', downloading new rates from API."
             )
             try:
-                rates_json = await self._download_rates_from_api(api_base_param)
+                rates_json = self._download_rates_from_api(api_base_param)
                 self._cache_rates(rates_json)
             except Exception as e:
-                log.error(f"Failed to download or cache rates: {e}")
+                logger.error(f"Failed to download or cache rates: {e}")
                 raise
 
         if not rates_json:
             crit_msg = "Failed to obtain rates data from cache or API."
-            log.critical(crit_msg)
+            logger.critical(crit_msg)
             raise RuntimeError(crit_msg)
 
-        log.debug(
+        logger.debug(
             f"Mapping rates for target '{target_mnemonic}' using data with base '{rates_json.get('base')}'"
         )
 
@@ -336,11 +306,11 @@ class Fixerio(Downloader):
 # --- Example Usage (Optional) ---
 async def main_example():
     """Example of how to use the Fixerio class."""
-    log.info("Starting Fixerio example...")
+    logger.info("Starting Fixerio example...")
 
     # Ensure API key is set before initializing Fixerio or running example
     if not os.getenv("FIXERIO_API_KEY"):
-        log.error("FIXERIO_API_KEY not set. Skipping live API call example.")
+        logger.error("FIXERIO_API_KEY not set. Skipping live API call example.")
         print("Please set the FIXERIO_API_KEY environment variable to run the example.")
         return
 
@@ -355,28 +325,25 @@ async def main_example():
 
     for symbol in symbols_to_test:
         try:
-            log.info(
+            logger.info(
                 "--- Attempting to download price for %s against base %s ---",
                 symbol.mnemonic,
                 eur_base,
             )
-            price = await fixerio_downloader.download(symbol, eur_base)
-            price_decimal = price.to_decimal()
+            price = fixerio_downloader.download(symbol, eur_base)
+            price_decimal = price.value
             print(
                 f"Price for {symbol.mnemonic}: {price_decimal:.6f} {price.currency} "
-                f"(Date: {price.date}, Raw: val={price.value}, den={price.denom})"
+                f"(Date: {price.date}, Raw: val={price.value})"
             )
         except Exception as e:
             print(f"Error downloading price for {symbol.mnemonic}: {e}")
-            log.error("Detailed error for %s: ", symbol.mnemonic, exc_info=True)
+            logger.error("Detailed error for %s: ", symbol.mnemonic, exc_info=True)
         print("-" * 20)
-
-    await fixerio_downloader.close()
 
 
 if __name__ == "__main__":
     # To run the example:
-    # 1. Ensure aiohttp is installed: pip install aiohttp
     # 2. Set the FIXERIO_API_KEY environment variable.
 
     if os.getenv("FIXERIO_API_KEY"):

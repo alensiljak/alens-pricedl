@@ -4,7 +4,7 @@ Yahoo Finance downloader implementation.
 
 import logging
 from datetime import datetime, timezone, timedelta
-import aiohttp
+import requests
 from typing import Dict
 from decimal import Decimal
 
@@ -90,28 +90,27 @@ class YahooFinanceDownloader(Downloader):
 
         return result
 
-    async def download(self, security_symbol: SecuritySymbol, currency: str) -> Price:
+    def download(self, security_symbol: SecuritySymbol, currency: str) -> Price:
         """Download price data from Yahoo Finance."""
         url = self.assemble_url(security_symbol)
 
-        logging.debug(f"fetching from {url}")
+        logging.debug("fetching from %s", url)
 
         # user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0"
         user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
 
         headers = {"User-Agent": user_agent}
 
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url, headers=headers) as response:
-                if not response.ok:
-                    print(f"Received a non-success status: {response.status}")
-                    response.raise_for_status()
+        response = requests.get(url, headers=headers, timeout=30)
+        if not response.ok:
+            print(f"Received a non-success status: {response}")
+            response.raise_for_status()
 
-                body = await response.json()
+        body = response.json()
 
-                result = self.get_price_from_json(body)
+        result = self.get_price_from_json(body)
 
-                # Set the symbol
-                result.symbol = security_symbol
+        # Set the symbol
+        result.symbol = security_symbol
 
-                return result
+        return result

@@ -6,7 +6,6 @@ Use:
     bean-price -e "AUD:pricedl.beanprice.vanguard_au_detail/HY"
 """
 
-import asyncio
 from datetime import datetime
 
 # type: ignore
