@@ -24,3 +24,12 @@ symbols_path = "/home/symbols.csv"
 ```sh
 uv run python main.py [dl]
 ```
+
+# Use with `bean-price`
+
+The Vanguard downloader has been adapted for use with `bean-price` utility.
+Use:
+
+```sh
+bean-price -e "AUD:pricedl.beanprice.vanguard_au_detail/HY"
+```
