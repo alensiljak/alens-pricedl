@@ -38,6 +38,19 @@ def test_dl_a2b():
     assert price is None
 
 
+def test_xetra():
+    """
+    Test downloading the price for XETRA
+    """
+    source = yahoo.Source()
+
+    price = source.get_latest_price("XETRA:DBK")
+
+    assert price is not None
+    assert price.price != Decimal(0)
+    assert price.quote_currency == "EUR"
+
+
 def test_wo_namespace():
     """
     Test downloading the price for ANGL, which has no namespace.

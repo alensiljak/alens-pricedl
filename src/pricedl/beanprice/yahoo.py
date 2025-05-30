@@ -8,7 +8,6 @@ Use:
 
 from datetime import datetime
 
-# type: ignore
 from beanprice import source
 from loguru import logger
 
@@ -36,7 +35,7 @@ class Source(source.Source):
                 return None
 
             dl = YahooFinanceDownloader()
-            response = dl.download(sec_symbol, 'AUD')
+            response = dl.download(sec_symbol, '')
 
             price = response.value
 
