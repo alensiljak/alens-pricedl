@@ -28,7 +28,12 @@ class Source(source.Source):
         try:
             symbol = ticker.split(':')
 
-            sec_symbol = SecuritySymbol(symbol[0], symbol[1])
+            if len(symbol) == 2:
+                sec_symbol = SecuritySymbol(symbol[0], symbol[1])
+            elif len(symbol) == 1:
+                sec_symbol = SecuritySymbol('', symbol[0])
+            else:
+                return None
 
             dl = YahooFinanceDownloader()
             response = dl.download(sec_symbol, 'AUD')
