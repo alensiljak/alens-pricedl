@@ -1,4 +1,4 @@
-# as-price-download
+# alens-pricedl
 Price-database utility converted to Python
 
 This is a rewrite of Pricedb-Rust utility. Pricedb-Rust originally came from Price-Database, which was in Python and was storing the prices in a SQLite database.
@@ -7,7 +7,7 @@ In this project, the idea remains to fetch the prices, sort them by time, and ou
 
 # Install
 ```sh
-uv tool install as-price-download
+uv tool install alens-pricedl
 ```
 
 # Run
@@ -31,5 +31,5 @@ The Vanguard downloader has been adapted for use with `bean-price` utility.
 Use:
 
 ```sh
-bean-price -e "AUD:pricedl.beanprice.vanguard_au_detail/HY"
+bean-price -e "AUD:alens.pricedl.beanprice.vanguard_au_detail/HY"
 ```
