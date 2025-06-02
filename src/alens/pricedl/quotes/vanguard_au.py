@@ -4,13 +4,13 @@ Deprecated as of 2023-04.
 """
 
 import json
-from loguru import logger
 from dataclasses import dataclass
 from datetime import datetime
 from decimal import Decimal, InvalidOperation
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional
 
 import requests
+from loguru import logger
 
 # --- Model classes (equivalent to crate::model) ---
 

@@ -11,8 +11,8 @@ from datetime import datetime
 from beanprice import source
 from loguru import logger
 
-from pricedl.model import SecuritySymbol
-from pricedl.quotes.yahoo_finance_downloader import YahooFinanceDownloader
+from alens.pricedl.model import SecuritySymbol
+from alens.pricedl.quotes.yahoo_finance_downloader import YahooFinanceDownloader
 
 
 class Source(source.Source):

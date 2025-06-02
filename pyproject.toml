@@ -1,6 +1,6 @@
 [project]
-name = "as-price-download"
-version = "0.4.1"
+name = "alens-pricedl"
+version = "0.5.1"
 description = "Commodity price retrieval, storage, and export in format compatible with Plain-Text Accounting applications."
 readme = "README.md"
 requires-python = ">=3.12"
@@ -24,6 +24,7 @@ pricedl = "pricedl.main:cli"
 dev = [
     "pytest>=8.3.5",
     "pytest-asyncio>=0.26.0",
+    "ruff>=0.11.12",
 ]
 
 [tool.pytest.ini_options]

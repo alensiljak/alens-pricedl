@@ -11,10 +11,10 @@ class SecurityFilter:
     '''
     CLI filter for the securities for which to download the prices
     '''
-    currency: None
-    agent: None
-    exchange: None
-    symbol: None
+    currency: str | None
+    agent: str | None
+    exchange: str |None
+    symbol: str | None
 
 
 @dataclass

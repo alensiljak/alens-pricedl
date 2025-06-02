@@ -44,7 +44,7 @@ class YfinanceDownloader(Downloader):
         else:
             return sec_symbol.mnemonic
 
-    async def download(self, security_symbol: SecuritySymbol, currency: str) -> Price:
+    def download(self, security_symbol: SecuritySymbol, currency: str) -> Price:
         """Download price for the given security symbol."""
         yahoo_symbol = self.get_yahoo_symbol(security_symbol)
 
@@ -73,6 +73,7 @@ class YfinanceDownloader(Downloader):
         # date = ticker.fast_info.get("lastTradeDate")
         # value = ticker.fast_info.get("lastPrice")
         currency = ticker.fast_info.get("currency")
+        assert currency
 
         price = Price(
             symbol=security_symbol,
@@ -92,8 +93,11 @@ class YfinanceDownloader(Downloader):
         """
         # Get the last date and the last price
         date = ticker.fast_info.get("lastTradeDate")
+        assert date
         value = ticker.fast_info.get("lastPrice")
+        assert value
         currency = ticker.fast_info.get("currency")
+        assert currency
 
         price = Price(
             symbol=security_symbol,
@@ -114,11 +118,14 @@ class YfinanceDownloader(Downloader):
         # Get the last date and the last price
         # date = ticker.info.get("lastTradeDate")
         ts = ticker.info.get("regularMarketTime")
+        assert ts
         dt = datetime.fromtimestamp(ts)
         # gmt_offset = ticker.info.get("gmtOffSetMilliseconds")
 
         value = ticker.info.get("regularMarketPrice")
+        assert value
         currency = ticker.info.get("currency")
+        assert currency
 
         price = Price(
             symbol=security_symbol,

@@ -7,10 +7,11 @@ from typing import List, Tuple
 import csv
 import asyncclick as click
 from loguru import logger
-from pricedl.config import PriceDbConfig
-from pricedl.price_flat_file import PriceFlatFile, PriceRecord
-from pricedl.quote import Quote
-from .model import Price, SecurityFilter, SecuritySymbol, SymbolMetadata
+
+from alens.pricedl.config import PriceDbConfig
+from alens.pricedl.price_flat_file import PriceFlatFile, PriceRecord
+from alens.pricedl.quote import Quote
+from alens.pricedl.model import Price, SecurityFilter, SecuritySymbol, SymbolMetadata
 
 
 def get_securities(
@@ -72,7 +73,7 @@ async def dl_quotes(security_filter: SecurityFilter):
     prices_file = PriceFlatFile.load(prices_path)
 
     # progress bar
-    with click.progressbar(length=len(securities), label="Downloading prices") as bar:
+    with click.progressbar(length=len(securities), label="Downloading prices") as progress:
         for sec in securities:
             logger.debug(f"Processing symbol: {sec.symbol}, {sec.updater_symbol}")
             # Use the Updater Symbol, if specified. This is provider-specific.
@@ -99,7 +100,7 @@ async def dl_quotes(security_filter: SecurityFilter):
             prices_file.save()
 
             # update progress bar
-            bar.update(1)
+            progress.update(1)
 
 
 def filter_securities(securities_list, filter_val):

@@ -3,8 +3,8 @@ Test the new logic, that downloads in memory.
 '''
 import pytest
 
-from pricedl.direct_dl import dl_quotes
-from pricedl.model import SecurityFilter
+from alens.pricedl.direct_dl import dl_quotes
+from alens.pricedl.model import SecurityFilter
 
 
 @pytest.mark.asyncio

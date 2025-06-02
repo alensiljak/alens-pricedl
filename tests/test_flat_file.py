@@ -5,8 +5,8 @@ Test price file handling
 from decimal import Decimal
 from pathlib import Path
 
-from pricedl.model import Price
-from pricedl.price_flat_file import PriceFlatFile, PriceRecord
+from alens.pricedl.model import Price
+from alens.pricedl.price_flat_file import PriceFlatFile, PriceRecord
 
 
 def test_reading():

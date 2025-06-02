@@ -18,8 +18,8 @@ from typing import Dict, Tuple
 
 import requests
 
-from pricedl.model import Price, SecuritySymbol
-from pricedl.quote import Downloader
+from alens.pricedl.model import Price, SecuritySymbol
+from alens.pricedl.quote import Downloader
 
 
 class VanguardAu3Downloader(Downloader):

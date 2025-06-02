@@ -106,23 +106,23 @@ def map_rates_to_price(rates_json: Dict[str, Any], target_symbol: str) -> Price:
         )
         raise ValueError("Negative price encountered, which is not expected.")
 
-    val_mantissa = 0
-    if digits_tuple:
-        val_mantissa = int("".join(map(str, digits_tuple)))
+    # val_mantissa = 0
+    # if digits_tuple:
+    #     val_mantissa = int("".join(map(str, digits_tuple)))
 
-    val_scale = 0
-    if isinstance(exponent_int, int):
-        if exponent_int < 0:
-            val_scale = -exponent_int
-    else:
-        logger.error(
-            "Unexpected exponent type for Decimal %s: %s",
-            final_decimal_for_price,
-            exponent_int,
-        )
-        raise ValueError(f"Unexpected exponent type for Decimal: {exponent_int}")
+    # val_scale = 0
+    # if isinstance(exponent_int, int):
+    #     if exponent_int < 0:
+    #         val_scale = -exponent_int
+    # else:
+    #     logger.error(
+    #         "Unexpected exponent type for Decimal %s: %s",
+    #         final_decimal_for_price,
+    #         exponent_int,
+    #     )
+    #     raise ValueError(f"Unexpected exponent type for Decimal: {exponent_int}")
 
-    val_denom = 10**val_scale
+    # val_denom = 10**val_scale
 
     symbol = SecuritySymbol("CURRENCY", f"{target_symbol.upper()}")
     return Price(
@@ -255,16 +255,14 @@ class Fixerio(Downloader):
         logger.debug(f"Cache file for today does not exist: {file_path}")
         return None
 
-    def download(
-        self, security_symbol: SecuritySymbol, request_base_currency: str
-    ) -> Price:
+    def download(self, security_symbol: SecuritySymbol, currency: str) -> Price:
         """
         Download latest rates for the target currency specified in security_symbol,
         relative to the request_base_currency.
         Caches the (daily) prices.
         """
         target_mnemonic = security_symbol.mnemonic.upper()
-        api_base_param = request_base_currency.upper()
+        api_base_param = currency.upper()
 
         if ":" in target_mnemonic:
             err_msg = (

@@ -1,23 +1,24 @@
-'''
+"""
 Configuration for the PriceDb application.
-'''
-import os
+"""
 
-from loguru import logger
+import os
 import tomllib
 from pathlib import Path
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional
+
+from loguru import logger
 
 
 class PriceDbConfig:
-    '''Configuration for the PriceDb application.'''
+    """Configuration for the PriceDb application."""
 
     def __init__(self):
         self.config_path = self._get_config_path()
         self.config_data = self._load_config()
 
     def _get_config_path(self) -> Path:
-        '''Get the path to the configuration file.'''
+        """Get the path to the configuration file."""
         config_dir = None
 
         # Check for XDG_CONFIG_HOME environment variable
@@ -46,7 +47,7 @@ class PriceDbConfig:
         return config_dir / "pricedl.toml"
 
     def _load_config(self) -> Dict[str, Any]:
-        '''Load configuration from file.'''
+        """Load configuration from file."""
         if not self.config_path.exists():
             logger.warning(f"Config file not found: {self.config_path}")
             return {}
@@ -61,7 +62,7 @@ class PriceDbConfig:
 
     @property
     def prices_path(self) -> Optional[str]:
-        '''Path to the prices file.'''
+        """Path to the prices file."""
         return self.config_data.get("prices_path")
 
     # @prices_path.setter
@@ -71,12 +72,11 @@ class PriceDbConfig:
 
     @property
     def symbols_path(self) -> Optional[str]:
-        '''Path to the symbols file.'''
+        """Path to the symbols file."""
         return self.config_data.get("symbols_path")
 
-
     def get_value(self, key: str) -> Any:
-        '''Get a value from the configuration.'''
+        """Get a value from the configuration."""
         return self.config_data.get(key)
 
     # def set_value(self, key: str, value: Any):

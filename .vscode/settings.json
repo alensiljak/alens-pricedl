@@ -3,5 +3,12 @@
         "tests"
     ],
     "python.testing.unittestEnabled": false,
-    "python.testing.pytestEnabled": true
+    "python.testing.pytestEnabled": true,
+    //"python.formatting.provider": "none", // Disable any other formatter
+    //"python.linting.enabled": false,       // Disable Python extension's default linting
+    //"python.linting.pylintEnabled": false,
+    "[python]": {
+    // "editor.formatOnSave": true,
+    "editor.defaultFormatter": "charliermarsh.ruff"
+  }
 }

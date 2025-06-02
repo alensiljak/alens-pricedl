@@ -12,8 +12,8 @@ import eurofx
 from loguru import logger
 import pandas as pd
 
-from pricedl.model import Price
-from pricedl.quote import Downloader
+from alens.pricedl.model import Price
+from alens.pricedl.quote import Downloader
 
 
 class EcbDownloader(Downloader):

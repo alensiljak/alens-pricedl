@@ -12,8 +12,8 @@ from datetime import datetime
 from beanprice import source
 from loguru import logger
 
-from pricedl.model import SecuritySymbol
-from pricedl.quotes.vanguard_au_2023_detail import VanguardAu3Downloader
+from alens.pricedl.model import SecuritySymbol
+from alens.pricedl.quotes.vanguard_au_2023_detail import VanguardAu3Downloader
 
 
 class Source(source.Source):

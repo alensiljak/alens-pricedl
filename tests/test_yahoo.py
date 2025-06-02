@@ -2,8 +2,8 @@
 Test Yahoo Finance API
 '''
 
-from pricedl.model import SecuritySymbol
-from pricedl.quotes.yahoo_finance_downloader import YahooFinanceDownloader
+from alens.pricedl.model import SecuritySymbol
+from alens.pricedl.quotes.yahoo_finance_downloader import YahooFinanceDownloader
 
 
 def test_dl():

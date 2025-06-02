@@ -8,7 +8,7 @@ from decimal import Decimal, InvalidOperation
 from pathlib import Path
 from typing import Dict, List
 
-from pricedl.model import Price
+from alens.pricedl.model import Price
 
 
 DATE_TIME_FORMAT: str = "%Y-%m-%d %H:%M:%S"

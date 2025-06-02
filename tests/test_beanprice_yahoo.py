@@ -10,7 +10,7 @@ from decimal import Decimal
 import beanprice.price
 from beanprice.price import DatedPrice, PriceSource
 
-from pricedl.beanprice import yahoo
+from alens.pricedl.beanprice import yahoo
 
 
 def test_dl_vhy():

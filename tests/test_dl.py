@@ -1,7 +1,7 @@
 '''
 Test download
 '''
-import pricedl
+# import pricedl
 
 def test_download():
     pass

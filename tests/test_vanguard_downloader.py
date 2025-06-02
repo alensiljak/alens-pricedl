@@ -6,7 +6,7 @@ Test for Vanguard downloader.
 from datetime import datetime
 from decimal import Decimal
 import pytest
-from pricedl.quotes.vanguard_au_2023_detail import (
+from alens.pricedl.quotes.vanguard_au_2023_detail import (
     VanguardAu3Downloader,
     SecuritySymbol,
 )  # Assuming the main code is in vanguard_au_2023_detail.py
