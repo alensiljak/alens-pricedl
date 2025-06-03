@@ -95,6 +95,7 @@ class VanguardAu3Downloader(Downloader):
         p = Price(
             symbol=SecuritySymbol("", ""),
             date=price_date,
+            time=None,
             value=Decimal(price_str),
             currency=currency_api,
         )

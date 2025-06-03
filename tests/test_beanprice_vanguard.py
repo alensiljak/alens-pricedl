@@ -38,3 +38,15 @@ def test_call_beanprice():
     assert p is not None
     assert p.amount != Decimal(0)
     assert p.currency == "AUD"
+
+def test_dl_prop():
+    """
+    Test downloading the price for PROP.
+    """
+    source = vanguard_au_detail.Source()
+
+    price = source.get_latest_price("PROP")
+
+    assert price is not None
+    assert price.price != Decimal(0)
+    assert price.quote_currency == "AUD"

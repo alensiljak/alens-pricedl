@@ -1,6 +1,6 @@
 [project]
 name = "alens-pricedl"
-version = "0.5.4"
+version = "0.5.5"
 description = "Commodity price retrieval, storage, and export in format compatible with Plain-Text Accounting applications."
 authors = [{ name = "Alen Siljak" }]
 readme = "README.md"
