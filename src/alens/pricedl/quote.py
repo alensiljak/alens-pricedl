@@ -36,7 +36,7 @@ class Quote:
         self.source: Optional[str] = None
         self.currency: Optional[str] = None
 
-    async def fetch(self, exchange: str, symbols: List[str]) -> List[Price]:
+    def fetch(self, exchange: str, symbols: List[str]) -> List[Price]:
         """Fetch prices for the given symbols."""
         result = []
 
@@ -44,13 +44,13 @@ class Quote:
             # logging.debug(f"Downloading price for {symbol}")
             sec_sym = SecuritySymbol(exchange, symbol)
 
-            price = await self.download(sec_sym)
+            price = self.download(sec_sym)
             if price:
                 result.append(price)
 
         return result
 
-    async def download(self, security_symbol: SecuritySymbol) -> Optional[Price]:
+    def download(self, security_symbol: SecuritySymbol) -> Optional[Price]:
         """Download price for the given security symbol."""
         if self.currency is not None:
             currency_val = self.currency
@@ -65,7 +65,7 @@ class Quote:
         )
 
         try:
-            price = await downloader.download(security_symbol, currency)
+            price = downloader.download(security_symbol, currency)
             price.source = self.source or ""
 
             # Set the symbol here.

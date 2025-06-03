@@ -56,7 +56,7 @@ def get_paths() -> Tuple[Path, Path]:
     return symbols_path, prices_path
 
 
-async def dl_quotes(security_filter: SecurityFilter):
+def dl_quotes(security_filter: SecurityFilter):
     """
     Download directly into the price file in ledger format.
     Maintains the latest prices in the price file by updating the prices for
@@ -83,7 +83,7 @@ async def dl_quotes(security_filter: SecurityFilter):
 
             # todo update progress bar
 
-            price = await download_price(
+            price = download_price(
                 symbol, currency=sec.currency, agent=sec.updater
             )
             logger.debug(f"Price: {price}")
@@ -146,7 +146,7 @@ def load_symbols(symbols_path: Path):
     return symbols_list
 
 
-async def download_price(
+def download_price(
     symbol: SecuritySymbol, currency: str | None, agent: str | None = None
 ) -> Price:
     """
@@ -158,7 +158,7 @@ async def download_price(
     if currency:
         dl.set_currency(currency)
 
-    prices = await dl.fetch(symbol.namespace, [symbol.mnemonic])
+    prices = dl.fetch(symbol.namespace, [symbol.mnemonic])
 
     # price = dl.download(symbol, currency, agent)
     if prices is None:

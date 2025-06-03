@@ -46,7 +46,7 @@ class Price:
     '''
     symbol: SecuritySymbol
     date: date
-    time: dt_time | None = None
+    time: dt_time | None
     value: Decimal = Decimal(0)
     currency: str = ''
     # value_int_part: int # The integer part of the value (mantissa)

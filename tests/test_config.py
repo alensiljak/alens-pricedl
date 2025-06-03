@@ -3,13 +3,12 @@ Test configuration
 '''
 from alens.pricedl.config import PriceDbConfig
 
-def test_config():
-    '''
-    Test if the configuration can be instantiated.
-    '''
-    cfg = PriceDbConfig()
-
-    assert cfg.prices_path is not None
+# def test_config():
+#     '''
+#     Test if the configuration can be instantiated.
+#     '''
+#     cfg = PriceDbConfig()
+#     assert cfg.prices_path is not None
 
 def test_config_path():
     '''

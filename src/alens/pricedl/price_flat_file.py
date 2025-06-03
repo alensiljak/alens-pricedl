@@ -66,7 +66,7 @@ class PriceRecord:
 
         return cls(
             datetime_val=dt,
-            symbol=str(item.symbol),
+            symbol=item.symbol.mnemonic,
             value=item.value,
             currency=item.currency,
         )

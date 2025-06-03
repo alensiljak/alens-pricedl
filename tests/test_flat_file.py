@@ -2,10 +2,11 @@
 Test price file handling
 """
 
+import datetime
 from decimal import Decimal
 from pathlib import Path
 
-from alens.pricedl.model import Price
+from alens.pricedl.model import Price, SecuritySymbol
 from alens.pricedl.price_flat_file import PriceFlatFile, PriceRecord
 
 
@@ -28,8 +29,11 @@ def test_conversion_to_datarecord():
     Convert Price to PriceRecord in the prices text file.
     '''
     # arrange
-    price = Price(date="2023-04-15", time="12:00:00", symbol="VEUR_AS", 
-                  value=1.5, currency="EUR", source="test")
+    date = datetime.date(2023, 4, 15)
+    time = datetime.time(12, 0, 0)
+    symbol = SecuritySymbol("", "VEUR_AS")
+    price = Price(date=date, time=time, symbol=symbol, 
+                  value=Decimal(1.5), currency="EUR", source="test")
     # act
     price_record = PriceRecord.from_price_model(price)
     # assert
