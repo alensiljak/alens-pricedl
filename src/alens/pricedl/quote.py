@@ -12,7 +12,6 @@ from typing import List, Optional
 
 from loguru import logger
 
-
 from .model import Price, SecuritySymbol
 
 
@@ -76,17 +75,18 @@ class Quote:
 
     def get_downloader(self) -> Downloader:
         """Get the appropriate downloader based on the source."""
+        from alens.pricedl.quotes.yahoo_finance_downloader import YahooFinanceDownloader
+        
         source = self.source.lower() if self.source else None
-
         if source == "yahoo_finance":
             logging.debug("using yahoo finance")
-            # return YahooFinanceDownloader()
-            raise NotImplementedError("not implemented")
-        elif source == "yfinance":
-            logging.debug("using yfinance")
-            from .quotes.yfinance import YfinanceDownloader
+            return YahooFinanceDownloader()
 
-            return YfinanceDownloader()
+        # elif source == "yfinance":
+        #     logging.debug("using yfinance")
+        #     from .quotes.yfinance import YfinanceDownloader
+
+        #     return YfinanceDownloader()
         elif source == "ecb":
             logging.debug("using ecb")
             from .quotes.ecb import EcbDownloader
