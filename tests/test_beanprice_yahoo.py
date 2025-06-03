@@ -77,3 +77,15 @@ def test_call_beanprice():
     assert p is not None
     assert p.amount != Decimal(0)
     assert p.currency == "AUD"
+
+def test_us_symbol_with_namespace():
+    """
+    Test downloading the price for AMLP with a namespace.
+    """
+    source = yahoo.Source()
+    # USD:alens.pricedl.beanprice.yahoo/NYSEARCA:AMLP
+    price = source.get_latest_price("NYSEARCA:AMLP")
+
+    assert price is not None
+    assert price.price != Decimal(0)
+    assert price.quote_currency == "USD"
