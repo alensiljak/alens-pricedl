@@ -8,9 +8,9 @@ import asyncclick as click
 from loguru import logger
 import dotenv
 
-import pricedl.direct_dl
-from pricedl.config import PriceDbConfig
-from pricedl.model import SecurityFilter
+from alens.pricedl.direct_dl import dl_quotes
+from alens.pricedl.config import PriceDbConfig
+from alens.pricedl.model import SecurityFilter
 
 dotenv.load_dotenv()
 
@@ -72,7 +72,7 @@ async def download(exchange, symbol, currency, agent, file):
 
     sec_filter = SecurityFilter(currency, agent, exchange, symbol)
     logger.debug(f"Filter: {sec_filter}")
-    await pricedl.direct_dl.dl_quotes(sec_filter)
+    dl_quotes(sec_filter)
 
 
 def get_version():
