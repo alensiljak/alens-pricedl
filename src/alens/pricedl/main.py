@@ -84,6 +84,24 @@ def get_version():
     return version
 
 
+# @cli.command("beanprice")
+# # @click.option("sources", default=None, help="Source for the price")
+# @click.argument('sources', type=click.Path(exists=True))
+# def bean_price():
+#     """Invoke the beanprice download"""
+#     import sys
+#     # import beanprice
+#     from beanprice import price
+
+#     # beanprice.price.main()
+#     args_after = sys.argv[sys.argv.index('beanprice') + 1:]  # Get everything after beanprice
+#     sys.argv = ['beanprice'] + args_after
+
+#     logger.debug("Arguments:", sys.argv)
+
+#     price.main()
+
+
 def main():
     """
     Entry point for the `pricedb` utility.
