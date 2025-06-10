@@ -46,9 +46,11 @@ class Source(source.Source):
             logger.error(e)
             return None
 
-    def get_historical_price(self, ticker, time):
+    def get_historical_price(self, ticker: str, time: datetime) -> source.SourcePrice | None:
         '''
         Downloads the historical price for the ticker.
         '''
         # todo: return VanguardAu3Downloader().get_historical_price(ticker, time)
         return None
+
+    # def get_prices_series

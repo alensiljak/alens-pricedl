@@ -50,3 +50,9 @@ def test_dl_prop():
     assert price is not None
     assert price.price != Decimal(0)
     assert price.quote_currency == "AUD"
+
+def test_dl_historical_prices():
+    """5 years of historical prices are available"""
+    source = vanguard_au_detail.Source()
+
+    prices = source.get_historical_prices("PROP", 5)
