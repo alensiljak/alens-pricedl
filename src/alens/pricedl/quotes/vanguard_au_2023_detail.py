@@ -9,6 +9,7 @@ The fund page is at
 https://www.vanguard.com.au/personal/invest-with-us/fund?productType=managed+fund&portId=8105&tab=prices-and-distributions
 but the prices are retrieved as JSON from
 https://www.vanguard.com.au/personal/api/products/personal/fund/8105/prices?limit=-1
+The limit parameter is for the number of prices retrieved.
 """
 
 import json
@@ -40,8 +41,11 @@ class VanguardAu3Downloader(Downloader):
         if fund_id is None:
             raise ValueError(f"Fund ID not found for symbol: {sec_symbol_str}")
 
-        result = f"https://www.vanguard.com.au/personal/api/products/personal/fund/{fund_id}/detail?limit=-1"
-        # print(f"DEBUG: url: {result}") # Corresponds to log::debug!
+        # limit = "-1"  # Get all prices
+        limit = "1"  # Get only the latest price
+
+        result = f"https://www.vanguard.com.au/personal/api/products/personal/fund/{fund_id}/detail?limit={limit}"
+
         return result
 
     def _dl_price(self, symbol: SecuritySymbol) -> Tuple[str, str, str]:
