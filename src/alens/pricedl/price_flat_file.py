@@ -194,7 +194,7 @@ class PriceFlatFile:
     def save(self):
         """Saves the current prices to the file, ordered by date/time then symbol."""
         # Order by date/time, then symbol
-        sorted_price_records = sorted(
+        sorted_price_records: list[PriceRecord] = sorted(
             self.prices.values(), key=lambda pr: (pr.datetime, pr.symbol)
         )
 
@@ -224,4 +224,5 @@ class PriceFlatFile:
         # Default file_path could be empty or a specific default if desired.
         # For now, let's assume it needs a path, even if not immediately used for loading.
         # This matches the Rust tests which use PriceFlatFile::default() then add.
-        return PriceFlatFile(file_path="", load_on_init=False)
+        default_path = Path("")
+        return PriceFlatFile(file_path=default_path, load_on_init=False)
