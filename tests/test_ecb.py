@@ -3,21 +3,18 @@ ECB Quotes
 """
 
 from pathlib import Path
-import pytest
 from alens.pricedl.model import SecuritySymbol
 from alens.pricedl.quotes.ecb import EcbDownloader
 
 
-@pytest.mark.asyncio
-async def test_aud_dl():
+def test_aud_dl():
     """
     Test downloading AUD exchange rate.
-    There was an exception.
     """
     currency = "AUD"
     dl = EcbDownloader()
     symbol = SecuritySymbol("CURRENCY", currency)
-    result = await dl.download(symbol, "EUR")
+    result = dl.download(symbol, "EUR")
 
     assert result is not None
     assert result.value > 0
@@ -27,14 +24,13 @@ async def test_aud_dl():
     assert result.symbol.namespace == "CURRENCY"
 
 
-@pytest.mark.asyncio
-async def test_dl():
+def test_dl():
     """
     test download
     """
     dl = EcbDownloader()
     symbol = SecuritySymbol("CURRENCY", "GBP")
-    result = await dl.download(symbol, "EUR")
+    result = dl.download(symbol, "EUR")
 
     assert result is not None
     assert result.value > 0

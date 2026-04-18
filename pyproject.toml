@@ -1,6 +1,6 @@
 [project]
 name = "alens-pricedl"
-version = "0.5.7"
+version = "0.6.0"
 description = "Commodity price retrieval, storage, and export in format compatible with Plain-Text Accounting applications."
 authors = [{ name = "Alen Siljak" }]
 readme = "README.md"
@@ -18,7 +18,6 @@ dependencies = [
     "beanprice>=2.0.0",
     "dotenv>=0.9.9",
     "loguru>=0.7.3",
-    "pyeurofx>=0.6.4",
     "requests>=2.32.3",
 ]
 

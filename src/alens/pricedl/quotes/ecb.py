@@ -3,17 +3,20 @@ Price downloader for ECB data (currencies).
 '''
 
 import datetime
-from decimal import ROUND_HALF_UP, Decimal
+import json
 import os
-from pathlib import Path
 import tempfile
-import eurofx
+from decimal import ROUND_HALF_UP, Decimal
+import xml.etree.ElementTree as ET
 
+import requests
 from loguru import logger
-import pandas as pd
 
 from alens.pricedl.model import Price
 from alens.pricedl.quote import Downloader
+
+ECB_URL = "https://www.ecb.europa.eu/stats/eurofx/eurofxref/eurofxref-daily.xml"
+ECB_NS = "http://www.ecb.int/vocabulary/2002-08-01/eurofxref"
 
 
 class EcbDownloader(Downloader):
@@ -21,7 +24,7 @@ class EcbDownloader(Downloader):
     Downloader for ECB data (currencies).
     '''
 
-    async def download(self, security_symbol, currency):
+    def download(self, security_symbol, currency):
         '''
         Download the price for the given symbol.
         '''
@@ -31,88 +34,47 @@ class EcbDownloader(Downloader):
         symbol = security_symbol.mnemonic.upper()
         logger.debug(f"Downloading price for {symbol} in {currency}")
 
-        # Check if we have cached daily rates file.
         if self.daily_cache_exists():
-            cache_date = Path(self.get_cache_path()).name.split(".")[0]
-            logger.debug(f"Using cached daily rates: {cache_date}")
-            daily_df = self.read_daily_cache()
+            logger.debug(f"Using cached daily rates: {self.get_cache_path()}")
+            data = self.read_daily_cache()
         else:
-            daily_df = eurofx.get_daily_data_df()
-            # cache it
-            self.write_daily_cache(daily_df)
+            data = self.fetch_daily_rates()
+            self.write_daily_cache(data)
 
-        # daily = eurofx.get_daily_data()
-        # historical = eurofx.get_historical_data()
-        # currencies = eurofx.get_currency_list()
+        date = datetime.date.fromisoformat(data["date"])
+        rate = data["rates"][symbol]
+        # Rates are EUR/currency, so invert to get currency/EUR
+        inv_rate = Decimal(1 / rate).quantize(Decimal('0.0001'), rounding=ROUND_HALF_UP)
 
-        # historical_df = eurofx.get_historical_data_df()
-        # currencies_df_ = eurofx.get_currency_list_df()
-
-        df = daily_df
-        # rate = df.at['2025-05-10', 'USD']
-        rate = df.iloc[0][symbol]
-        # The rates inverted. They are for 1 Euro (EUR/AUD).
-        inv_rate = Decimal(1 / rate)
-        inv_rate = inv_rate.quantize(Decimal('0.0001'), rounding=ROUND_HALF_UP)
-
-        # date
-        timestamp = df.index[0]
-        if isinstance(timestamp, str):
-            date = datetime.datetime.strptime(timestamp, '%Y-%m-%d').date()
-        elif isinstance(timestamp, pd.Timestamp):
-            date = timestamp.date()
-        else:
-            logger.debug(f"timestamp: {timestamp}, {type(timestamp).__name__}")
-            raise ValueError("Unsupported timestamp type")
-
-        return Price(symbol=security_symbol,
-                     date=date, value=inv_rate,
+        return Price(symbol=security_symbol, date=date, value=inv_rate,
                      currency=currency, source="ECB")
 
-    def daily_cache_exists(self):
-        '''
-        Checks if the daily rates file exists.
-        '''
-        cache_path = self.get_cache_path()
-        return os.path.exists(cache_path)
+    def fetch_daily_rates(self) -> dict:
+        '''Fetch and parse ECB daily rates XML.'''
+        response = requests.get(ECB_URL, timeout=30)
+        response.raise_for_status()
 
-    def get_cache_path(self):
-        '''
-        Returns the path to the cache file.
-        '''
+        root = ET.fromstring(response.content)
+        # The outer Cube contains a Cube with time=, which contains Cube currency= rate= children
+        outer = root.find(f"{{{ECB_NS}}}Cube")
+        daily = outer.find(f"{{{ECB_NS}}}Cube")
+        date = daily.attrib["time"]
+        rates = {c.attrib["currency"]: float(c.attrib["rate"]) for c in daily}
+
+        return {"date": date, "rates": rates}
+
+    def get_cache_path(self) -> str:
         temp_dir = tempfile.gettempdir()
         filename = datetime.date.today().isoformat()
-        # Change extension to change the format.
-        extension = "csv"
-        return os.path.join(temp_dir, f"{filename}.{extension}")
+        return os.path.join(temp_dir, f"{filename}-ecb.json")
 
-    def write_daily_cache(self, df: pd.DataFrame):
-        '''
-        Caches the daily rates.
-        '''
-        cache_path = self.get_cache_path()
+    def daily_cache_exists(self) -> bool:
+        return os.path.exists(self.get_cache_path())
 
-        # support different formats
-        if cache_path.endswith(".csv"):
-            df.to_csv(cache_path, index=True)
-        elif cache_path.endswith(".feather"):
-            df.to_feather(cache_path)
-        else:
-            raise ValueError(f"Unsupported file format: {cache_path}")
+    def write_daily_cache(self, data: dict):
+        with open(self.get_cache_path(), "w", encoding="utf-8") as f:
+            json.dump(data, f)
 
-    def read_daily_cache(self) -> pd.DataFrame:
-        '''
-        Reads the cached daily rates.
-        '''
-        cache_path = self.get_cache_path()
-
-        logger.debug(f"Reading cached daily rates from {cache_path}")
-
-        # support different formats
-        if cache_path.endswith(".csv"):
-            df = pd.read_csv(cache_path, index_col=0, parse_dates=True)
-        elif cache_path.endswith(".feather"):
-            df = pd.read_feather(cache_path)
-        else:
-            raise ValueError(f"Unsupported file format: {cache_path}")
-        return df
+    def read_daily_cache(self) -> dict:
+        with open(self.get_cache_path(), encoding="utf-8") as f:
+            return json.load(f)
